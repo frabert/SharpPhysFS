@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace PhysFS
@@ -61,266 +62,166 @@ namespace PhysFS
     public FreeDelegate Free;
   }
 
+  static class DynamicLoader
+  {
+    #region Windows
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr LoadLibrary(string lpFileName);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
+    public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
+    public static extern bool FreeLibrary(IntPtr hModule);
+    #endregion
+
+    #region Unix
+    [DllImport("libdl.so")]
+    public static extern IntPtr dlopen(string filename, int flags);
+
+    [DllImport("libdl.so")]
+    public static extern IntPtr dlsym(IntPtr handle, string symbol);
+
+    [DllImport("libdl.so")]
+    public static extern bool dlclose(IntPtr handle);
+    #endregion
+  }
+
   static class Interop
   {
-    const string DLL_NAME = "physfs.dll";
+    public static bool init = false;
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void FnGetLinkedVersion(ref Version v);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int FnInit(string argv0);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int FnDeinit();
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int FnClose(IntPtr ptr);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate IntPtr FnSupportedArchiveTypes();
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void FnFreeList(IntPtr h);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate IntPtr FnGetLastError();
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate string FnGetDirSeparator();
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void FnPermitSymbolicLinks(int permit);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int FnSetWriteDir(string s);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int FnAddToSearchPath(string s, int i);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int FnSetSaneConfig(string s1, string s2, string s3, int i1, int i2);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate string FnGetRealDir(string s);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate IntPtr FnEnumerateFiles(string s);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate long FnGetLastModTime(string s);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate long FnRead(IntPtr ptr1, IntPtr ptr2, uint i1, uint i2);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate long FnTell(IntPtr ptr);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int FnSeek(IntPtr ptr, ulong u);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate long FnFileLength(IntPtr ptr);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int FnSetAllocator(Allocator alloc);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int FnMount(string s1, string s2, int i);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void FnGetCdRomDirsCallback(StringCallback c, IntPtr ptr);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void FnEnumerateFilesCallback(string s, EnumFilesCallback c, IntPtr ptr);
+
+    public static FnGetLinkedVersion PHYSFS_getLinkedVersion;
+    public static FnInit PHYSFS_init;
+    public static FnDeinit PHYSFS_deinit;
+    public static FnSupportedArchiveTypes PHYSFS_supportedArchiveTypes;
+    public static FnFreeList PHYSFS_freeList;
+    public static FnGetLastError PHYSFS_getLastError;
+    public static FnGetDirSeparator PHYSFS_getDirSeparator;
+    public static FnPermitSymbolicLinks PHYSFS_permitSymbolicLinks;
+    public static FnSupportedArchiveTypes PHYSFS_getCdRomDirs;
+    public static FnGetDirSeparator PHYSFS_getBaseDir;
+    public static FnGetDirSeparator PHYSFS_getUserDir;
+    public static FnGetDirSeparator PHYSFS_getWriteDir;
+    public static FnSetWriteDir PHYSFS_setWriteDir;
+    public static FnAddToSearchPath PHYSFS_addToSearchPath;
+    public static FnSetWriteDir PHYSFS_removeFromSearchPath;
+    public static FnSupportedArchiveTypes PHYSFS_getSearchPath;
+    public static FnSetSaneConfig PHYSFS_setSaneConfig;
+    public static FnSetWriteDir PHYSFS_mkdir;
+    public static FnSetWriteDir PHYSFS_delete;
+    public static FnGetRealDir PHYSFS_getRealDir;
+    public static FnEnumerateFiles PHYSFS_enumerateFiles;
+    public static FnSetWriteDir PHYSFS_exists;
+    public static FnSetWriteDir PHYSFS_isDirectory;
+    public static FnSetWriteDir PHYSFS_isSymbolicLink;
+    public static FnGetLastModTime PHYSFS_getLastModTime;
+    public static FnEnumerateFiles PHYSFS_openWrite;
+    public static FnEnumerateFiles PHYSFS_openAppend;
+    public static FnEnumerateFiles PHYSFS_openRead;
+    public static FnClose PHYSFS_close;
+    public static FnRead PHYSFS_read;
+    public static FnRead PHYSFS_write;
+    public static FnClose PHYSFS_eof;
+    public static FnTell PHYSFS_tell;
+    public static FnSeek PHYSFS_seek;
+    public static FnFileLength PHYSFS_fileLength;
+    public static FnSeek PHYSFS_setBuffer;
+    public static FnClose PHYSFS_flush;
+    public static FnDeinit PHYSFS_isInit;
+    public static FnDeinit PHYSFS_symbolicLinksPermitted;
+    public static FnSetAllocator PHYSFS_setAllocator;
+    public static FnMount PHYSFS_mount;
+    public static FnGetRealDir PHYSFS_getMountPoint;
+    public static FnGetCdRomDirsCallback PHYSFS_getCdRomDirsCallback;
+    public static FnGetCdRomDirsCallback PHYSFS_getSearchPathCallback;
+    public static FnEnumerateFilesCallback PHYSFS_enumerateFilesCallback;
+
+    public static void SetUpInterop()
+    {
+      Func<string, IntPtr> loadLibrary;
+      Func<IntPtr, string, IntPtr> loadSymbol;
+
+      IntPtr library;
 
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void PHYSFS_getLinkedVersion(ref Version ver);
+      if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+      {
+        loadLibrary = DynamicLoader.LoadLibrary;
 
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_init(string argv0);
+        loadSymbol = DynamicLoader.GetProcAddress;
 
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_deinit();
+        library = loadLibrary("physfs.dll");
+      }
+      else
+      {
+        loadLibrary = n =>
+        {
+          return DynamicLoader.dlopen(n, 1);
+        };
 
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr PHYSFS_supportedArchiveTypes();
+        loadSymbol = DynamicLoader.dlsym;
 
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void PHYSFS_freeList(IntPtr listVar);
+        library = loadLibrary("physfs.so");
+      }
 
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr PHYSFS_getLastError();
+      var fields = typeof(Interop).GetFields();
 
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern string PHYSFS_getDirSeparator();
+      foreach(var field in fields.Where(x => x.Name.StartsWith("PHYSFS_")))
+      {
+        var funcPtr = loadSymbol(library, field.Name);
+        var del = Marshal.GetDelegateForFunctionPointer(funcPtr, field.FieldType);
 
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void PHYSFS_permitSymbolicLinks(int allow);
+        field.SetValue(null, del);
+      }
 
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static unsafe extern IntPtr PHYSFS_getCdRomDirs();
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern string PHYSFS_getBaseDir();
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern string PHYSFS_getUserDir();
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern string PHYSFS_getWriteDir();
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_setWriteDir(string newDir);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_addToSearchPath(string newDir, int appendToPath);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_removeFromSearchPath(string oldDir);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static unsafe extern IntPtr PHYSFS_getSearchPath();
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_setSaneConfig(string organization, string appName, string archiveExt, int includeCdRoms, int archivesFirst);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_mkdir(string dirName);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_delete(string filename);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern string PHYSFS_getRealDir(string filename);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static unsafe extern IntPtr PHYSFS_enumerateFiles(string dir);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_exists(string fname);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_isDirectory(string fname);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_isSymbolicLink(string fname);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern long PHYSFS_getLastModTime(string filename);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr PHYSFS_openWrite(string filename);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr PHYSFS_openAppend(string filename);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr PHYSFS_openRead(string filename);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_close(IntPtr handle);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern long PHYSFS_read(IntPtr handle, IntPtr buffer, uint objSize, uint objCount);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern long PHYSFS_write(IntPtr handle, IntPtr buffer, uint objSize, uint objCount);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_eof(IntPtr handle);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern long PHYSFS_tell(IntPtr handle);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_seek(IntPtr handle, ulong pos);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern long PHYSFS_fileLength(IntPtr handle);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_setBuffer(IntPtr handle, ulong bufsize);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_flush(IntPtr handle);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern short PHYSFS_swapSLE16(short val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern ushort PHYSFS_swapULE16(ushort val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_swapSLE32(int val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern uint PHYSFS_swapULE32(uint val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern long PHYSFS_swapSLE64(long val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern ulong PHYSFS_swapULE64(ulong val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern short PHYSFS_swapSBE16(short val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern ushort PHYSFS_swapUBE16(ushort val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_swapSBE32(int val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern uint PHYSFS_swapUBE32(uint val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern long PHYSFS_swapSBE64(long val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern ulong PHYSFS_swapUBE64(ulong val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_readSLE16(IntPtr file, ref short val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_readULE16(IntPtr file, ref ushort val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_readSBE16(IntPtr file, ref short val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_readUBE16(IntPtr file, ref ushort val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_readSLE32(IntPtr file, ref int val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_readULE32(IntPtr file, ref uint val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_readSBE32(IntPtr file, ref int val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_readUBE32(IntPtr file, ref uint val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_readSLE64(IntPtr file, ref long val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_readULE64(IntPtr file, ref ulong val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_readSBE64(IntPtr file, ref long val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_readUBE64(IntPtr file, ref ulong val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_writeSLE16(IntPtr file, short val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_writeULE16(IntPtr file, ushort val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_writeSBE16(IntPtr file, short val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_writeUBE16(IntPtr file, ushort val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_writeSLE32(IntPtr file, int val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_writeULE32(IntPtr file, uint val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_writeSBE32(IntPtr file, int val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_writeUBE32(IntPtr file, uint val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_writeSLE64(IntPtr file, long val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_writeULE64(IntPtr file, ulong val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_writeSBE64(IntPtr file, long val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_writeUBE64(IntPtr file, ulong val);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_isInit();
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_symbolicLinksPermitted();
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_setAllocator(Allocator allocator);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern int PHYSFS_mount(string newDir, string mountPoint, int appendToPath);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern string PHYSFS_getMountPoint(string dir);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void PHYSFS_getCdRomDirsCallback(StringCallback c, IntPtr d);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void PHYSFS_getSearchPathCallback(StringCallback c, IntPtr d);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void PHYSFS_enumerateFilesCallback(string dir, EnumFilesCallback c, IntPtr d);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static unsafe extern void PHYSFS_utf8FromUcs4(uint* src, char* dst, ulong len);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static unsafe extern void PHYSFS_utf8ToUcs4(string src, uint* dst, ulong len);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static unsafe extern void PHYSFS_utf8FromUcs2(ushort* src, char* dst, ulong len);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static unsafe extern void PHYSFS_utf8ToUcs2(string src, ushort* dst, ulong len);
-
-    [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-    public static unsafe extern void PHYSFS_utf8FromLatin1(string src, char* dst, ulong len);
+      init = true;
+    }
   }
 }
