@@ -76,13 +76,13 @@ namespace PhysFS
     #endregion
 
     #region Unix
-    [DllImport("libdl.so")]
+    [DllImport("libdl.so", CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr dlopen(string filename, int flags);
 
-    [DllImport("libdl.so")]
+    [DllImport("libdl.so", CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr dlsym(IntPtr handle, string symbol);
 
-    [DllImport("libdl.so")]
+    [DllImport("libdl.so", CallingConvention = CallingConvention.Cdecl)]
     public static extern bool dlclose(IntPtr handle);
     #endregion
   }
