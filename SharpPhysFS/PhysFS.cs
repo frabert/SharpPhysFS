@@ -18,6 +18,9 @@ namespace PhysFS
     { }
   }
 
+  /// <summary>
+  /// Main class for SharpPhysFS
+  /// </summary>
   public static class PhysFS
   {
     public static class LowLevel
@@ -199,9 +202,8 @@ namespace PhysFS
     /// Get human-readable error information.
     /// </summary>
     /// <para>
-    /// Get the last PhysicsFS error message as a human-readable, null-terminated string.
+    /// Get the last PhysicsFS error message as a human-readable string.
     /// This will be null if there's been no error since the last call to this function.
-    /// The pointer returned by this call points to an internal buffer.
     /// Each thread has a unique error state associated with it, but each time a new error message is set,
     /// it will overwrite the previous one associated with that thread.
     /// It is safe to call this function at anytime, even before PhysFS.Init().
@@ -476,11 +478,13 @@ namespace PhysFS
     ///     </item>
     ///   </list>
     /// </para>
-    /// These directories are then searched for files ending with the extension (archiveExt), which,
+    /// <para>
+    /// These directories are then searched for files ending with the extension <paramref name="archiveExt"/>, which,
     /// if they are valid and supported archives, will also be added to the search path.
-    /// If you specified "PKG" for (archiveExt), and there's a file named data.PKG in the base dir, it'll be checked.
+    /// If you specified "PKG" for <paramref name="archiveExt"/>, and there's a file named data.PKG in the base dir, it'll be checked.
     /// Archives can either be appended or prepended to the search path in alphabetical order,
     /// regardless of which directories they were found in.
+    /// </para>
     /// <para>
     /// All of this can be accomplished from the application, but this just does it all for you. Feel free to add more to the search path manually, too.
     /// </para>
@@ -493,11 +497,11 @@ namespace PhysFS
     /// Do not specify the '.' char; If you want to look for ZIP files, specify "ZIP" and not ".ZIP" ... the archive search is case-insensitive.
     /// </param>
     /// <param name="includeCdRoms">
-    /// True to include CD-ROMs in the search path, and (if (archiveExt) != null) search them for archives.
+    /// True to include CD-ROMs in the search path, and (if <paramref name="archiveExt"/> != null) search them for archives.
     /// This may cause a significant amount of blocking while discs are accessed, and if there are no discs in the drive (or even not mounted on Unix systems),
     /// then they may not be made available anyhow. You may want to specify false and handle the disc setup yourself.
     /// </param>
-    /// <param name="archivesFirst">True to prepend the archives to the search path. False to append them. Ignored if !(archiveExt).</param>
+    /// <param name="archivesFirst">True to prepend the archives to the search path. False to append them. Ignored if !<paramref name="archiveExt"/>.</param>
     public static void SetSaneConfig(string organization, string appName, string archiveExt, bool includeCdRoms, bool archivesFirst)
     {
       int err = Interop.PHYSFS_setSaneConfig(organization, appName, archiveExt, includeCdRoms ? 1 : 0, archivesFirst ? 1 : 0);
@@ -527,7 +531,7 @@ namespace PhysFS
     /// <summary>
     /// Delete a file or directory.
     /// </summary>
-    /// <para>(filename) is specified in platform-independent notation in relation to the write dir.</para>
+    /// <para><paramref name="filename"/> is specified in platform-independent notation in relation to the write dir.</para>
     /// <para>A directory must be empty before this call can delete it.</para>
     /// <para>Deleting a symlink will remove the link, not what it points to, regardless of whether you "permitSymLinks" or not.</para>
     /// <para>
