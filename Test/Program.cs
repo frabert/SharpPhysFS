@@ -10,12 +10,14 @@ namespace Test
   {
     static void Main(string[] args)
     {
-      PhysFS.Interop.SetUpInterop();
+      PhysFS.PhysFS.InitializeCallbacks();
       PhysFS.PhysFS.Init("");
-      Console.WriteLine("Hello, world");
+      var ver = PhysFS.PhysFS.GetLinkedVersion();
+      Console.WriteLine("{0}.{1}.{2}", ver.major, ver.minor, ver.patch);
       PhysFS.PhysFS.Mount("D:\\", "/", true);
       var x = PhysFS.PhysFS.EnumerateFiles("/");
       PhysFS.PhysFS.Deinit();
+      Console.ReadLine();
     }
 
   }
