@@ -125,6 +125,22 @@ namespace PhysFS
     }
 
     /// <summary>
+    /// Sets up the library callbacks for use.
+    /// </summary>
+    /// <para>
+    /// This method will dynamically load the right library according to the
+    /// current platform, whether it is Windows of *nix
+    /// </para>
+    /// <para>
+    /// This method must be called before any other method in this class is available.
+    /// Not doing so will result in NullReferenceException
+    /// </para>
+    public static void InitializeCallbacks()
+    {
+      Interop.SetUpInterop();
+    }
+
+    /// <summary>
     /// Get the version of PhysicsFS that is linked against your program
     /// </summary>
     /// <returns>The version of PhysicsFS that is linked against your program</returns>
