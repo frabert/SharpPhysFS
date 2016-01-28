@@ -106,8 +106,6 @@ namespace PhysFS
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate IntPtr FnGetLastError();
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate string FnGetDirSeparator();
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void FnPermitSymbolicLinks(int permit);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate int FnSetWriteDir(string s);
@@ -115,8 +113,6 @@ namespace PhysFS
     public delegate int FnAddToSearchPath(string s, int i);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate int FnSetSaneConfig(string s1, string s2, string s3, int i1, int i2);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate string FnGetRealDir(string s);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate IntPtr FnEnumerateFiles(string s);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -144,12 +140,12 @@ namespace PhysFS
     public static FnSupportedArchiveTypes PHYSFS_supportedArchiveTypes;
     public static FnFreeList PHYSFS_freeList;
     public static FnGetLastError PHYSFS_getLastError;
-    public static FnGetDirSeparator PHYSFS_getDirSeparator;
+    public static FnGetLastError PHYSFS_getDirSeparator;
     public static FnPermitSymbolicLinks PHYSFS_permitSymbolicLinks;
     public static FnSupportedArchiveTypes PHYSFS_getCdRomDirs;
-    public static FnGetDirSeparator PHYSFS_getBaseDir;
-    public static FnGetDirSeparator PHYSFS_getUserDir;
-    public static FnGetDirSeparator PHYSFS_getWriteDir;
+    public static FnGetLastError PHYSFS_getBaseDir;
+    public static FnGetLastError PHYSFS_getUserDir;
+    public static FnGetLastError PHYSFS_getWriteDir;
     public static FnSetWriteDir PHYSFS_setWriteDir;
     public static FnAddToSearchPath PHYSFS_addToSearchPath;
     public static FnSetWriteDir PHYSFS_removeFromSearchPath;
@@ -157,7 +153,7 @@ namespace PhysFS
     public static FnSetSaneConfig PHYSFS_setSaneConfig;
     public static FnSetWriteDir PHYSFS_mkdir;
     public static FnSetWriteDir PHYSFS_delete;
-    public static FnGetRealDir PHYSFS_getRealDir;
+    public static FnEnumerateFiles PHYSFS_getRealDir;
     public static FnEnumerateFiles PHYSFS_enumerateFiles;
     public static FnSetWriteDir PHYSFS_exists;
     public static FnSetWriteDir PHYSFS_isDirectory;
@@ -179,7 +175,7 @@ namespace PhysFS
     public static FnDeinit PHYSFS_symbolicLinksPermitted;
     public static FnSetAllocator PHYSFS_setAllocator;
     public static FnMount PHYSFS_mount;
-    public static FnGetRealDir PHYSFS_getMountPoint;
+    public static FnEnumerateFiles PHYSFS_getMountPoint;
     public static FnGetCdRomDirsCallback PHYSFS_getCdRomDirsCallback;
     public static FnGetCdRomDirsCallback PHYSFS_getSearchPathCallback;
     public static FnEnumerateFilesCallback PHYSFS_enumerateFilesCallback;
