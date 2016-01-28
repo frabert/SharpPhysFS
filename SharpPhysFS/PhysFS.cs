@@ -293,15 +293,13 @@ namespace PhysFS
     public static IEnumerable<ArchiveInfo> SupportedArchiveTypes()
     {
       IntPtr archives = Interop.PHYSFS_supportedArchiveTypes();
-      IntPtr i;
-      for (i = archives; Marshal.ReadIntPtr(i) != IntPtr.Zero; i = IntPtr.Add(i, 1))
+      IntPtr i = archives;
+      for (i = archives; Marshal.ReadIntPtr(i) != IntPtr.Zero; i = IntPtr.Add(i, IntPtr.Size))
       {
         IntPtr ptr = Marshal.ReadIntPtr(i);
-        var info = new ArchiveInfo();
-        info = FromPtr<ArchiveInfo>(ptr);
+        var info = FromPtr<ArchiveInfo>(ptr);
         yield return info;
       }
-      Interop.PHYSFS_freeList(archives);
     }
 
     /// <summary>
