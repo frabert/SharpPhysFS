@@ -186,29 +186,38 @@ namespace PhysFS
 
     public static void SetUpInterop()
     {
+      /* This method is used to dynamically load the physfs
+       * library. It works by detecting the current platform
+       * and deciding whether to use LoadLibrary/GetProcAddr
+       * on Windows or dlopen/dlsym on Linux and OSX.
+       * The the class is then scanned using reflection
+       * to populate all the callbacks with the right function
+       * pointers from the loaded library
+       */
+
       Func<string, IntPtr> loadLibrary;
       Func<IntPtr, string, IntPtr> loadSymbol;
+      string libraryName;
 
       IntPtr library;
 
       if (Environment.OSVersion.Platform == PlatformID.Win32NT)
       {
         loadLibrary = DynamicLoader.LoadLibrary;
-
         loadSymbol = DynamicLoader.GetProcAddress;
-
-        library = loadLibrary("physfs.dll");
+        libraryName = "physfs.dll";
       }
       else
       {
-        loadLibrary = n =>
-        {
-          return DynamicLoader.dlopen(n, 1);
-        };
-
+        loadLibrary = n => DynamicLoader.dlopen(n, 1);
         loadSymbol = DynamicLoader.dlsym;
+        libraryName = "physfs.so";
+      }
 
-        library = loadLibrary("physfs.so");
+      library = loadLibrary(libraryName);
+      if (library == IntPtr.Zero)
+      {
+        throw new PhysFSLibNotFound();
       }
 
       var fields = typeof(Interop).GetFields();
