@@ -243,7 +243,7 @@ namespace PhysFS
     /// <returns>Platform-dependent dir separator string</returns>
     public static string GetDirSeparator()
     {
-      return Interop.PHYSFS_getDirSeparator();
+      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getDirSeparator());
     }
 
     /// <summary>
@@ -367,7 +367,7 @@ namespace PhysFS
     /// <returns></returns>
     public static string GetBaseDir()
     {
-      return Interop.PHYSFS_getBaseDir();
+      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getBaseDir());
     }
 
     /// <summary>
@@ -385,7 +385,7 @@ namespace PhysFS
     /// <returns>String of user dir in platform-dependent notation.</returns>
     public static string GetUserDir()
     {
-      return Interop.PHYSFS_getUserDir();
+      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getUserDir());
     }
 
     /// <summary>
@@ -397,7 +397,7 @@ namespace PhysFS
     /// <returns>String of write dir in platform-dependent notation, OR null IF NO WRITE PATH IS CURRENTLY SET</returns>
     public static string GetWriteDir()
     {
-      return Interop.PHYSFS_getWriteDir();
+      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getWriteDir());
     }
 
     /// <summary>
@@ -589,7 +589,7 @@ namespace PhysFS
     /// <returns>String of element of search path containing the the file in question. null if not found.</returns>
     public static string GetRealDir(string filename)
     {
-      return Interop.PHYSFS_getRealDir(filename);
+      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getRealDir(filename));
     }
 
     /// <summary>
@@ -692,7 +692,7 @@ namespace PhysFS
     /// <returns>String of mount point if added to path</returns>
     public static string GetMountPoint(string dir)
     {
-      var s = Interop.PHYSFS_getMountPoint(dir);
+      var s = Marshal.PtrToStringAnsi(Interop.PHYSFS_getMountPoint(dir));
       if(s == null)
       {
         throw new PhysFSException();
