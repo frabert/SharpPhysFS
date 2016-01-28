@@ -211,7 +211,7 @@ namespace PhysFS
       {
         loadLibrary = n => DynamicLoader.dlopen(n, 1);
         loadSymbol = DynamicLoader.dlsym;
-        libraryName = "physfs.so";
+        libraryName = "libphysfs.so";
       }
 
       library = loadLibrary(libraryName);
