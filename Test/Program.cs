@@ -121,6 +121,11 @@ namespace Test
     {
       Console.WriteLine(PhysFS.PhysFS.GetLastError());
     }
+
+    static void GetDirSeparator(string[] args)
+    {
+      Console.WriteLine(PhysFS.PhysFS.GetDirSeparator());
+    }
     #endregion
 
     static void Main(string[] args)
@@ -149,6 +154,7 @@ namespace Test
       commands.Add("mount", Mount);
       commands.Add("enumerate", Enumerate);
       commands.Add("ls", Enumerate);
+      commands.Add("getdirsep", GetDirSeparator);
 
       while (true)
       {
