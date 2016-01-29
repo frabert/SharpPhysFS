@@ -75,24 +75,25 @@ namespace Test
       }
     }
 
-    static Dictionary<string, Action<string[]>> commands = new Dictionary<string, Action<string[]>>();
+    static Dictionary<string, Func<string[], bool>> commands = new Dictionary<string, Func<string[], bool>>();
 
     #region Commands
-    static void Help(string[] args)
+    static bool Help(string[] args)
     {
       Console.WriteLine("Commands:");
       foreach (var kvp in commands)
       {
         Console.WriteLine(" - {0}", kvp.Key);
       }
+      return true;
     }
 
-    static void Mount(string[] args)
+    static bool Mount(string[] args)
     {
       if (args.Length < 3)
       {
         Console.WriteLine("Usage: mount <archive> <mntpoint> <append>");
-        return;
+        return false;
       }
       bool append;
       if (!bool.TryParse(args[2], out append))
@@ -101,31 +102,212 @@ namespace Test
       }
 
       PhysFS.PhysFS.Mount(args[0], args[1], append);
+      return true;
     }
 
-    static void Enumerate(string[] args)
+    static bool Enumerate(string[] args)
     {
       if (args.Length < 1)
       {
         Console.WriteLine("Usage: enumerate/ls <dir>");
-        return;
+        return false;
       }
 
       foreach (var f in PhysFS.PhysFS.EnumerateFiles(args[0]))
       {
         Console.WriteLine(" - {0}", f);
       }
+      return true;
     }
 
-    static void GetLastError(string[] args)
+    static bool GetLastError(string[] args)
     {
       Console.WriteLine(PhysFS.PhysFS.GetLastError());
+      return true;
     }
 
-    static void GetDirSeparator(string[] args)
+    static bool GetDirSeparator(string[] args)
     {
       Console.WriteLine(PhysFS.PhysFS.GetDirSeparator());
+      return true;
     }
+
+    static bool GetCdRomDirectories(string[] args)
+    {
+      foreach(var d in PhysFS.PhysFS.GetCdRomDirs())
+      {
+        Console.WriteLine(" - {0}", d);
+      }
+      return true;
+    }
+
+    static bool GetSearchPath(string[] args)
+    {
+      foreach (var d in PhysFS.PhysFS.GetSearchPath())
+      {
+        Console.WriteLine(" - {0}", d);
+      }
+      return true;
+    }
+
+    static bool GetBaseDirectory(string[] args)
+    {
+      Console.WriteLine(PhysFS.PhysFS.GetBaseDir());
+      return true;
+    }
+
+    static bool GetUserDirectory(string[] args)
+    {
+      Console.WriteLine(PhysFS.PhysFS.GetUserDir());
+      return true;
+    }
+
+    static bool GetWriteDirectory(string[] args)
+    {
+      Console.WriteLine(PhysFS.PhysFS.GetWriteDir());
+      return true;
+    }
+
+    static bool SetWriteDirectory(string[] args)
+    {
+      if (args.Length < 1)
+      {
+        Console.WriteLine("Usage: setwritedir <dir>");
+        return false;
+      }
+      PhysFS.PhysFS.SetWriteDir(args[0]);
+      return true;
+    }
+
+    static bool PermitSymlinks(string[] args)
+    {
+      if (args.Length < 1)
+      {
+        Console.WriteLine("Usage: permitsymlinks <true/false>");
+        return false;
+      }
+      bool permit;
+      if (!bool.TryParse(args[0], out permit))
+      {
+        Console.WriteLine("Usage: permitsymlinks <true/false>");
+      }
+      PhysFS.PhysFS.PermitSymbolicLinks(permit);
+      return true;
+    }
+
+    static bool SetSaneConfig(string[] args)
+    {
+      if(args.Length < 5)
+      {
+        Console.WriteLine("Usage: setsaneconfig <org> <appName> <arcExt> <includeCdRoms> <archivesFirst>");
+        return false;
+      }
+      bool includeCdRoms, archivesFirst;
+      if(bool.TryParse(args[3], out includeCdRoms) && bool.TryParse(args[4], out archivesFirst))
+      {
+        PhysFS.PhysFS.SetSaneConfig(args[0], args[1], args[2], includeCdRoms, archivesFirst);
+      }
+      else
+      {
+        Console.WriteLine("Usage: setsaneconfig <org> <appName> <arcExt> <includeCdRoms> <archivesFirst>");
+      }
+      return true;
+    }
+
+    static bool MkDir(string[] args)
+    {
+      if (args.Length < 1)
+      {
+        Console.WriteLine("Usage: mkdir <dir>");
+        return false;
+      }
+      PhysFS.PhysFS.Mkdir(args[0]);
+      return true;
+    }
+
+    static bool Delete(string[] args)
+    {
+      if (args.Length < 1)
+      {
+        Console.WriteLine("Usage: delete <dir>");
+        return false;
+      }
+      PhysFS.PhysFS.Delete(args[0]);
+      return true;
+    }
+
+    static bool GetRealDir(string[] args)
+    {
+      if (args.Length < 1)
+      {
+        Console.WriteLine("Usage: getrealdir <dir>");
+        return false;
+      }
+      Console.WriteLine(PhysFS.PhysFS.GetRealDir(args[0]));
+      return true;
+    }
+
+    static bool Exists(string[] args)
+    {
+      if (args.Length < 1)
+      {
+        Console.WriteLine("Usage: exists <file>");
+        return false;
+      }
+      Console.WriteLine(PhysFS.PhysFS.Exists(args[0]));
+      return true;
+    }
+
+    static bool IsDir(string[] args)
+    {
+      if (args.Length < 1)
+      {
+        Console.WriteLine("Usage: isdir <path>");
+        return false;
+      }
+      Console.WriteLine(PhysFS.PhysFS.IsDirectory(args[0]));
+      return true;
+    }
+
+    static bool IsSymlink(string[] args)
+    {
+      if (args.Length < 1)
+      {
+        Console.WriteLine("Usage: issymlink <path>");
+        return false;
+      }
+      Console.WriteLine(PhysFS.PhysFS.IsSymbolicLink(args[0]));
+      return true;
+    }
+
+    static bool Cat(string[] args)
+    {
+      if (args.Length < 1)
+      {
+        Console.WriteLine("Usage: cat <file>");
+        return false;
+      }
+      using (var reader = new System.IO.StreamReader(new PhysFS.PhysFSStream(args[0], PhysFS.OpenMode.Read)))
+      {
+        Console.WriteLine(reader.ReadToEnd());
+      }
+      return true;
+    }
+
+    static bool FileLength(string[] args)
+    {
+      if (args.Length < 1)
+      {
+        Console.WriteLine("Usage: filelength <file>");
+        return false;
+      }
+      using (var stream = new PhysFS.PhysFSStream(args[0], PhysFS.OpenMode.Read))
+      {
+        Console.WriteLine(stream.Length);
+      }
+      return true;
+    }
+
     #endregion
 
     static void Main(string[] args)
@@ -155,6 +337,22 @@ namespace Test
       commands.Add("enumerate", Enumerate);
       commands.Add("ls", Enumerate);
       commands.Add("getdirsep", GetDirSeparator);
+      commands.Add("getcdromdirs", GetCdRomDirectories);
+      commands.Add("getsearchpath", GetSearchPath);
+      commands.Add("getbasedir", GetBaseDirectory);
+      commands.Add("getuserdir", GetUserDirectory);
+      commands.Add("getwritedir", GetWriteDirectory);
+      commands.Add("setwritedir", SetWriteDirectory);
+      commands.Add("permitsymlinks", PermitSymlinks);
+      commands.Add("setsaneconfig", SetSaneConfig);
+      commands.Add("mkdir", MkDir);
+      commands.Add("delete", Delete);
+      commands.Add("getrealdir", GetRealDir);
+      commands.Add("exists", Exists);
+      commands.Add("isdir", IsDir);
+      commands.Add("issymlink", IsSymlink);
+      commands.Add("cat", Cat);
+      commands.Add("filelength", FileLength);
 
       while (true)
       {
@@ -172,17 +370,21 @@ namespace Test
         }
         else
         {
-          Action<string[]> cmd;
+          Func<string[], bool> cmd;
           if (commands.TryGetValue(split.First(), out cmd))
           {
             try
             {
-              cmd(split.Skip(1).ToArray());
-              Console.WriteLine("Done.");
+              if(cmd(split.Skip(1).ToArray()))
+              {
+                Console.WriteLine("Done.");
+              }
             }
             catch (PhysFS.PhysFSException e)
             {
+              Console.ForegroundColor = ConsoleColor.Red;
               Console.Error.WriteLine("ERROR: {0}", e.Message);
+              Console.ForegroundColor = ConsoleColor.Gray;
             }
           }
           else
