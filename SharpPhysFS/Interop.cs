@@ -85,6 +85,17 @@ namespace SharpPhysFS
     [DllImport("libdl.so", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dlclose")]
     public static extern bool unix_dlclose(IntPtr handle);
     #endregion
+
+    #region OSX
+    [DllImport("libdyld.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dlopen")]
+    public static extern IntPtr osx_dlopen(string filename, int flags);
+
+    [DllImport("libdyld.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dlsym")]
+    public static extern IntPtr osx_dlsym(IntPtr handle, string symbol);
+
+    [DllImport("libdyld.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dlclose")]
+    public static extern bool osx_dlclose(IntPtr handle);
+    #endregion
   }
 
   static class Interop
