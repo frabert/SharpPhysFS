@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using SharpPhysFS;
+
 namespace Test
 {
   class Program
@@ -12,7 +14,7 @@ namespace Test
     {
       Console.Write("Supported archive types: ");
       bool any = false;
-      foreach (var archive in SharpPhysFS.PhysFS.SupportedArchiveTypes())
+      foreach (var archive in PhysFS.SupportedArchiveTypes())
       {
         any = true;
         Console.WriteLine("\n - {0}: {1}", archive.extension, archive.description);
@@ -101,7 +103,7 @@ namespace Test
         Console.WriteLine("append can only be true or false");
       }
 
-      SharpPhysFS.PhysFS.Mount(args[0], args[1], append);
+      PhysFS.Mount(args[0], args[1], append);
       return true;
     }
 
@@ -113,7 +115,7 @@ namespace Test
         return false;
       }
 
-      foreach (var f in SharpPhysFS.PhysFS.EnumerateFiles(args[0]))
+      foreach (var f in PhysFS.EnumerateFiles(args[0]))
       {
         Console.WriteLine(" - {0}", f);
       }
@@ -122,19 +124,19 @@ namespace Test
 
     static bool GetLastError(string[] args)
     {
-      Console.WriteLine(SharpPhysFS.PhysFS.GetLastError());
+      Console.WriteLine(PhysFS.GetLastError());
       return true;
     }
 
     static bool GetDirSeparator(string[] args)
     {
-      Console.WriteLine(SharpPhysFS.PhysFS.GetDirSeparator());
+      Console.WriteLine(PhysFS.GetDirSeparator());
       return true;
     }
 
     static bool GetCdRomDirectories(string[] args)
     {
-      foreach(var d in SharpPhysFS.PhysFS.GetCdRomDirs())
+      foreach(var d in PhysFS.GetCdRomDirs())
       {
         Console.WriteLine(" - {0}", d);
       }
@@ -143,7 +145,7 @@ namespace Test
 
     static bool GetSearchPath(string[] args)
     {
-      foreach (var d in SharpPhysFS.PhysFS.GetSearchPath())
+      foreach (var d in PhysFS.GetSearchPath())
       {
         Console.WriteLine(" - {0}", d);
       }
@@ -152,19 +154,19 @@ namespace Test
 
     static bool GetBaseDirectory(string[] args)
     {
-      Console.WriteLine(SharpPhysFS.PhysFS.GetBaseDir());
+      Console.WriteLine(PhysFS.GetBaseDir());
       return true;
     }
 
     static bool GetUserDirectory(string[] args)
     {
-      Console.WriteLine(SharpPhysFS.PhysFS.GetUserDir());
+      Console.WriteLine(PhysFS.GetUserDir());
       return true;
     }
 
     static bool GetWriteDirectory(string[] args)
     {
-      Console.WriteLine(SharpPhysFS.PhysFS.GetWriteDir());
+      Console.WriteLine(PhysFS.GetWriteDir());
       return true;
     }
 
@@ -175,7 +177,7 @@ namespace Test
         Console.WriteLine("Usage: setwritedir <dir>");
         return false;
       }
-      SharpPhysFS.PhysFS.SetWriteDir(args[0]);
+      PhysFS.SetWriteDir(args[0]);
       return true;
     }
 
@@ -191,7 +193,7 @@ namespace Test
       {
         Console.WriteLine("Usage: permitsymlinks <true/false>");
       }
-      SharpPhysFS.PhysFS.PermitSymbolicLinks(permit);
+      PhysFS.PermitSymbolicLinks(permit);
       return true;
     }
 
@@ -205,7 +207,7 @@ namespace Test
       bool includeCdRoms, archivesFirst;
       if(bool.TryParse(args[3], out includeCdRoms) && bool.TryParse(args[4], out archivesFirst))
       {
-        SharpPhysFS.PhysFS.SetSaneConfig(args[0], args[1], args[2], includeCdRoms, archivesFirst);
+        PhysFS.SetSaneConfig(args[0], args[1], args[2], includeCdRoms, archivesFirst);
       }
       else
       {
@@ -221,7 +223,7 @@ namespace Test
         Console.WriteLine("Usage: mkdir <dir>");
         return false;
       }
-      SharpPhysFS.PhysFS.Mkdir(args[0]);
+      PhysFS.Mkdir(args[0]);
       return true;
     }
 
@@ -232,7 +234,7 @@ namespace Test
         Console.WriteLine("Usage: delete <dir>");
         return false;
       }
-      SharpPhysFS.PhysFS.Delete(args[0]);
+      PhysFS.Delete(args[0]);
       return true;
     }
 
@@ -243,7 +245,7 @@ namespace Test
         Console.WriteLine("Usage: getrealdir <dir>");
         return false;
       }
-      Console.WriteLine(SharpPhysFS.PhysFS.GetRealDir(args[0]));
+      Console.WriteLine(PhysFS.GetRealDir(args[0]));
       return true;
     }
 
@@ -254,7 +256,7 @@ namespace Test
         Console.WriteLine("Usage: exists <file>");
         return false;
       }
-      Console.WriteLine(SharpPhysFS.PhysFS.Exists(args[0]));
+      Console.WriteLine(PhysFS.Exists(args[0]));
       return true;
     }
 
@@ -265,7 +267,7 @@ namespace Test
         Console.WriteLine("Usage: isdir <path>");
         return false;
       }
-      Console.WriteLine(SharpPhysFS.PhysFS.IsDirectory(args[0]));
+      Console.WriteLine(PhysFS.IsDirectory(args[0]));
       return true;
     }
 
@@ -276,7 +278,7 @@ namespace Test
         Console.WriteLine("Usage: issymlink <path>");
         return false;
       }
-      Console.WriteLine(SharpPhysFS.PhysFS.IsSymbolicLink(args[0]));
+      Console.WriteLine(PhysFS.IsSymbolicLink(args[0]));
       return true;
     }
 
@@ -287,7 +289,7 @@ namespace Test
         Console.WriteLine("Usage: cat <file>");
         return false;
       }
-      using (var reader = new System.IO.StreamReader(new SharpPhysFS.PhysFSStream(args[0], SharpPhysFS.OpenMode.Read)))
+      using (var reader = new System.IO.StreamReader(new PhysFSStream(args[0], OpenMode.Read)))
       {
         Console.WriteLine(reader.ReadToEnd());
       }
@@ -301,7 +303,7 @@ namespace Test
         Console.WriteLine("Usage: filelength <file>");
         return false;
       }
-      using (var stream = new SharpPhysFS.PhysFSStream(args[0], SharpPhysFS.OpenMode.Read))
+      using (var stream = new PhysFSStream(args[0], OpenMode.Read))
       {
         Console.WriteLine(stream.Length);
       }
@@ -314,17 +316,17 @@ namespace Test
     {
       try
       {
-        SharpPhysFS.PhysFS.InitializeCallbacks();
+        PhysFS.InitializeCallbacks();
       }
-      catch (SharpPhysFS.PhysFSLibNotFound)
+      catch (PhysFSLibNotFound)
       {
         Console.ForegroundColor = ConsoleColor.Red;
         Console.Error.WriteLine("ERROR: PhysFS could not be loaded. Are you sure it is installed or a suitable module is in your working directory?");
         return;
       }
-      SharpPhysFS.PhysFS.Init("");
+      PhysFS.Init("");
 
-      var version = SharpPhysFS.PhysFS.GetLinkedVersion();
+      var version = PhysFS.GetLinkedVersion();
 
       Console.WriteLine("SharpPhysFS Test console");
       Console.WriteLine("Loaded PhysFS version: {0}.{1}.{2}", version.major, version.minor, version.patch);
@@ -380,7 +382,7 @@ namespace Test
                 Console.WriteLine("Done.");
               }
             }
-            catch (SharpPhysFS.PhysFSException e)
+            catch (PhysFSException e)
             {
               Console.ForegroundColor = ConsoleColor.Red;
               Console.Error.WriteLine("ERROR: {0}", e.Message);
@@ -394,7 +396,7 @@ namespace Test
         }
       }
 
-      SharpPhysFS.PhysFS.Deinit();
+      PhysFS.Deinit();
     }
   }
 }
