@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace PhysFS
+namespace SharpPhysFS
 {
   public class PhysFSException : Exception
   {

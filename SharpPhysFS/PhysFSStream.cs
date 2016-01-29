@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace PhysFS
+namespace SharpPhysFS
 {
   public enum OpenMode
   {

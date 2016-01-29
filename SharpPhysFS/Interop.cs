@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace PhysFS
+namespace SharpPhysFS
 {
   [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
   public delegate int InitDelegate();
