@@ -76,14 +76,14 @@ namespace SharpPhysFS
     #endregion
 
     #region Unix
-    [DllImport("libdl.so", CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr dlopen(string filename, int flags);
+    [DllImport("libdl.so", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dlopen")]
+    public static extern IntPtr unix_dlopen(string filename, int flags);
 
-    [DllImport("libdl.so", CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr dlsym(IntPtr handle, string symbol);
+    [DllImport("libdl.so", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dlsym")]
+    public static extern IntPtr unix_dlsym(IntPtr handle, string symbol);
 
-    [DllImport("libdl.so", CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool dlclose(IntPtr handle);
+    [DllImport("libdl.so", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dlclose")]
+    public static extern bool unix_dlclose(IntPtr handle);
     #endregion
   }
 
@@ -205,8 +205,8 @@ namespace SharpPhysFS
       }
       else
       {
-        loadLibrary = n => DynamicLoader.dlopen(n, 1);
-        loadSymbol = DynamicLoader.dlsym;
+        loadLibrary = n => DynamicLoader.unix_dlopen(n, 1);
+        loadSymbol = DynamicLoader.unix_dlsym;
         libraryName = "libphysfs.so";
       }
 
