@@ -214,6 +214,12 @@ namespace SharpPhysFS
         loadSymbol = DynamicLoader.GetProcAddress;
         libraryName = "physfs.dll";
       }
+      else if(Environment.OSVersion.Platform == PlatformID.MacOSX)
+      {
+        loadLibrary = n => DynamicLoader.osx_dlopen(n, 1);
+        loadSymbol = DynamicLoader.osx_dlsym;
+        libraryName = "libphysfs.dylib";
+      }
       else
       {
         loadLibrary = n => DynamicLoader.unix_dlopen(n, 1);
