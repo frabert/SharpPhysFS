@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Francesco Bertolaccini")]
 [assembly: AssemblyProduct("SharpPhysFS")]
-[assembly: AssemblyCopyright("Copyright ©  2015 Francesco Bertolaccini")]
+[assembly: AssemblyCopyright("Copyright © 2016 Francesco Bertolaccini")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
