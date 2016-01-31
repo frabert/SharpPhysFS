@@ -15,3 +15,10 @@ and OSX equally well. I haven't tested the OSX port though, and I only superfici
 
 If anyone feels so inclined, he/she could contribute by testing it and reporting the results. This would
 be greatly appreciated.
+
+## Installation
+
+You can use this library by compiling it as described in the [wiki](https://github.com/frabert/SharpPhysFS/wiki)
+or by adding it as a reference using NuGet:
+
+    Install-Package SharpPhysFS
