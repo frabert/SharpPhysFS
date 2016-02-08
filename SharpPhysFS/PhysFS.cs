@@ -4,13 +4,6 @@ using System.Runtime.InteropServices;
 
 namespace SharpPhysFS
 {
-  public class PhysFSException : Exception
-  {
-    public PhysFSException()
-      : base(PhysFS.GetLastError())
-    { }
-  }
-
   public class PhysFSLibNotFound : Exception
   {
     public PhysFSLibNotFound()
@@ -21,94 +14,22 @@ namespace SharpPhysFS
   /// <summary>
   /// Main class for SharpPhysFS
   /// </summary>
-  public static class PhysFS
+  public partial class PhysFS
+    : IDisposable
   {
-    public static class LowLevel
+    public class PhysFSException : Exception
     {
-      public static IntPtr OpenWrite(string filename)
-      {
-        var val = Interop.PHYSFS_openWrite(filename);
-        if (val == null)
-          throw new PhysFSException();
-        return val;
-      }
+      public PhysFSException(PhysFS physFS)
+        : base(physFS.GetLastError())
+      { }
+    }
 
-      public static IntPtr OpenAppend(string filename)
-      {
-        var val = Interop.PHYSFS_openAppend(filename);
-        if (val == null)
-          throw new PhysFSException();
-        return val;
-      }
+    Interop interop;
 
-      public static IntPtr OpenRead(string filename)
-      {
-        var val = Interop.PHYSFS_openRead(filename);
-        if (val == null)
-          throw new PhysFSException();
-        return val;
-      }
-
-      public static void Close(IntPtr file)
-      {
-        int err = Interop.PHYSFS_close(file);
-        ThrowException(err);
-      }
-
-      public static long Read(IntPtr file, byte[] buffer, uint objSize, uint objCount)
-      {
-        unsafe
-        {
-          fixed (void* ptr = buffer)
-          {
-            return Interop.PHYSFS_read(file, (IntPtr)ptr, objSize, objCount);
-          }
-        }
-      }
-
-      public static long Write(IntPtr file, byte[] buffer, uint objSize, uint objCount)
-      {
-        unsafe
-        {
-          fixed (void* ptr = buffer)
-          {
-            return Interop.PHYSFS_write(file, (IntPtr)ptr, objSize, objCount);
-          }
-        }
-      }
-
-      public static bool EOF(IntPtr file)
-      {
-        return Interop.PHYSFS_eof(file) != 0;
-      }
-
-      public static long Tell(IntPtr file)
-      {
-        return Interop.PHYSFS_tell(file);
-      }
-
-      public static void Seek(IntPtr file, ulong pos)
-      {
-        int err = Interop.PHYSFS_seek(file, pos);
-        ThrowException(err);
-      }
-
-      public static long FileLength(IntPtr file)
-      {
-        return Interop.PHYSFS_fileLength(file);
-      }
-
-      public static void SetBuffer(IntPtr file, ulong bufSize)
-      {
-        int err = Interop.PHYSFS_setBuffer(file, bufSize);
-        ThrowException(err);
-      }
-
-      public static void Flush(IntPtr file)
-      {
-        int err = Interop.PHYSFS_flush(file);
-        ThrowException(err);
-      }
+    public PhysFS(string argv0)
+    {
+      interop = new Interop();
+      Init(argv0);
     }
 
     static T FromPtr<T>(IntPtr ptr)
@@ -116,38 +37,22 @@ namespace SharpPhysFS
       return (T)Marshal.PtrToStructure(ptr, typeof(T));
     }
 
-    static void ThrowException(int err)
+    void ThrowException(int err)
     {
       if (err == 0)
       {
-        throw new PhysFSException();
+        throw new PhysFSException(this);
       }
-    }
-
-    /// <summary>
-    /// Sets up the library callbacks for use.
-    /// </summary>
-    /// <para>
-    /// This method will dynamically load the right library according to the
-    /// current platform, whether it is Windows of *nix
-    /// </para>
-    /// <para>
-    /// This method must be called before any other method in this class is available.
-    /// Not doing so will result in NullReferenceException
-    /// </para>
-    public static void InitializeCallbacks()
-    {
-      Interop.SetUpInterop();
     }
 
     /// <summary>
     /// Get the version of PhysicsFS that is linked against your program
     /// </summary>
     /// <returns>The version of PhysicsFS that is linked against your program</returns>
-    public static Version GetLinkedVersion()
+    public Version GetLinkedVersion()
     {
       Version v = new Version();
-      Interop.PHYSFS_getLinkedVersion(ref v);
+      interop.PHYSFS_getLinkedVersion(ref v);
       return v;
     }
 
@@ -157,11 +62,12 @@ namespace SharpPhysFS
     /// <remarks>
     /// Must be called before any other PhysicsFS function.
     /// This should be called prior to any attempts to change your process's current working directory.
+    /// NOTE: This is automatically called when the class is created.
     /// </remarks>
     /// <param name="argv0">This should be the path of the executable (first arguments passed to main function in C programs)</param>
-    public static void Init(string argv0)
+    public void Init(string argv0)
     {
-      int err = Interop.PHYSFS_init(argv0);
+      int err = interop.PHYSFS_init(argv0);
       ThrowException(err);
     }
 
@@ -180,10 +86,11 @@ namespace SharpPhysFS
     /// close all write handles yourself before calling this function, so that you can gracefully handle a specific failure.
     /// Once successfully deinitialized, Init can be called again to restart the subsystem.
     /// All default API states are restored at this point, with the exception of any custom allocator you might have specified, which survives between initializations.
+    /// NOTE: This is called automatically on disposal.
     /// </remarks>
-    public static void Deinit()
+    public void Deinit()
     {
-      int err = Interop.PHYSFS_deinit();
+      int err = interop.PHYSFS_deinit();
       ThrowException(err);
     }
 
@@ -208,9 +115,9 @@ namespace SharpPhysFS
     /// <param name="dir">directory or archive to add to the path, in platform-dependent notation.</param>
     /// <param name="mountPoint">Location in the interpolated tree that this archive will be "mounted", in platform-independent notation. null or "" is equivalent to "/".</param>
     /// <param name="appendToPath">True to append to search path, false to prepend.</param>
-    public static void Mount(string dir, string mountPoint, bool appendToPath)
+    public void Mount(string dir, string mountPoint, bool appendToPath)
     {
-      int err = Interop.PHYSFS_mount(dir, mountPoint, appendToPath ? 1 : 0);
+      int err = interop.PHYSFS_mount(dir, mountPoint, appendToPath ? 1 : 0);
       ThrowException(err);
     }
 
@@ -225,9 +132,9 @@ namespace SharpPhysFS
     /// It is safe to call this function at anytime, even before PhysFS.Init().
     /// </para>
     /// <returns>String of last error message.</returns>
-    public static string GetLastError()
+    public string GetLastError()
     {
-      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getLastError());
+      return Marshal.PtrToStringAnsi(interop.PHYSFS_getLastError());
     }
 
     /// <summary>
@@ -241,9 +148,9 @@ namespace SharpPhysFS
     /// This is only useful for setting up the search/write paths, since access into those dirs always use '/' (platform-independent notation) 
     /// </remarks>
     /// <returns>Platform-dependent dir separator string</returns>
-    public static string GetDirSeparator()
+    public string GetDirSeparator()
     {
-      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getDirSeparator());
+      return Marshal.PtrToStringAnsi(interop.PHYSFS_getDirSeparator());
     }
 
     /// <summary>
@@ -268,7 +175,7 @@ namespace SharpPhysFS
     ///   </code>
     /// </para>
     /// <param name="dir">Directory in platform-independent notation to enumerate.</param>
-    public static string[] EnumerateFiles(string dir)
+    public string[] EnumerateFiles(string dir)
     {
       var list = new List<string>();
       EnumerateFilesCallback(dir, (d, o, f) =>
@@ -290,9 +197,9 @@ namespace SharpPhysFS
     /// The extension listed is merely convention: if we list "ZIP", you can open a PkZip-compatible archive with an extension of "XYZ", if you like.
     /// </remarks>
     /// <returns>An enumeration of supported archive types</returns>
-    public static IEnumerable<ArchiveInfo> SupportedArchiveTypes()
+    public IEnumerable<ArchiveInfo> SupportedArchiveTypes()
     {
-      IntPtr archives = Interop.PHYSFS_supportedArchiveTypes();
+      IntPtr archives = interop.PHYSFS_supportedArchiveTypes();
       IntPtr i = archives;
       for (i = archives; Marshal.ReadIntPtr(i) != IntPtr.Zero; i = IntPtr.Add(i, IntPtr.Size))
       {
@@ -325,9 +232,9 @@ namespace SharpPhysFS
     /// That is, when setting up your search and write paths, etc, symlinks are never checked for.
     /// </remarks>
     /// <param name="permit">true to permit symlinks, false to deny linking.</param>
-    public static void PermitSymbolicLinks(bool permit)
+    public void PermitSymbolicLinks(bool permit)
     {
-      Interop.PHYSFS_permitSymbolicLinks(permit ? 1 : 0);
+      interop.PHYSFS_permitSymbolicLinks(permit ? 1 : 0);
     }
 
     /// <summary>
@@ -348,7 +255,7 @@ namespace SharpPhysFS
     /// This call may block while drives spin up. Be forewarned.
     /// </remarks>
     /// <returns>An enumeration of paths to available CD-ROM drives.</returns>
-    public static string[] GetCdRomDirs()
+    public string[] GetCdRomDirs()
     {
       var list = new List<string>();
       GetCdRomDirsCallback((d, s) =>
@@ -365,9 +272,9 @@ namespace SharpPhysFS
     /// It is probably better to use managed methods for this.
     /// </remarks>
     /// <returns></returns>
-    public static string GetBaseDir()
+    public string GetBaseDir()
     {
-      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getBaseDir());
+      return Marshal.PtrToStringAnsi(interop.PHYSFS_getBaseDir());
     }
 
     /// <summary>
@@ -383,9 +290,9 @@ namespace SharpPhysFS
     /// You should probably use the user dir as the basis for your write dir, and also put it near the beginning of your search path.
     /// </para>
     /// <returns>String of user dir in platform-dependent notation.</returns>
-    public static string GetUserDir()
+    public string GetUserDir()
     {
-      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getUserDir());
+      return Marshal.PtrToStringAnsi(interop.PHYSFS_getUserDir());
     }
 
     /// <summary>
@@ -395,9 +302,9 @@ namespace SharpPhysFS
     /// Get the current write dir. The default write dir is "".
     /// </para>
     /// <returns>String of write dir in platform-dependent notation, OR null IF NO WRITE PATH IS CURRENTLY SET</returns>
-    public static string GetWriteDir()
+    public string GetWriteDir()
     {
-      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getWriteDir());
+      return Marshal.PtrToStringAnsi(interop.PHYSFS_getWriteDir());
     }
 
     /// <summary>
@@ -413,9 +320,9 @@ namespace SharpPhysFS
     /// The new directory to be the root of the write dir, specified in platform-dependent notation.
     /// Setting to null disables the write dir, so no files can be opened for writing via PhysicsFS.
     /// </param>
-    public static void SetWriteDir(string path)
+    public void SetWriteDir(string path)
     {
-      int err = Interop.PHYSFS_setWriteDir(path);
+      int err = interop.PHYSFS_setWriteDir(path);
       ThrowException(err);
     }
 
@@ -425,9 +332,9 @@ namespace SharpPhysFS
     /// <param name="newDir">Directory or archive to add to the path, in platform-dependent notation</param>
     /// <param name="appendToPath">true to append to search path, false to prepend</param>
     [Obsolete("AddToSearchPath is deprecated, please use Mount instead")]
-    public static void AddToSearchPath(string newDir, bool appendToPath)
+    public void AddToSearchPath(string newDir, bool appendToPath)
     {
-      int err = Interop.PHYSFS_addToSearchPath(newDir, appendToPath ? 1 : 0);
+      int err = interop.PHYSFS_addToSearchPath(newDir, appendToPath ? 1 : 0);
       ThrowException(err);
     }
 
@@ -441,16 +348,16 @@ namespace SharpPhysFS
     /// This call will fail (and fail to remove from the path) if the element still has files open in it.
     /// </para>
     /// <param name="oldDir">	dir/archive to remove.</param>
-    public static void RemoveFromSearchPath(string oldDir)
+    public void RemoveFromSearchPath(string oldDir)
     {
-      int err = Interop.PHYSFS_removeFromSearchPath(oldDir);
+      int err = interop.PHYSFS_removeFromSearchPath(oldDir);
       ThrowException(err);
     }
 
     /// <summary>
     /// Get the current search path.
     /// </summary>
-    public static string[] GetSearchPath()
+    public string[] GetSearchPath()
     {
       //var dirs = Interop.PHYSFS_getSearchPath();
       //return GenEnumerable(dirs);
@@ -516,9 +423,9 @@ namespace SharpPhysFS
     /// then they may not be made available anyhow. You may want to specify false and handle the disc setup yourself.
     /// </param>
     /// <param name="archivesFirst">True to prepend the archives to the search path. False to append them. Ignored if !<paramref name="archiveExt"/>.</param>
-    public static void SetSaneConfig(string organization, string appName, string archiveExt, bool includeCdRoms, bool archivesFirst)
+    public void SetSaneConfig(string organization, string appName, string archiveExt, bool includeCdRoms, bool archivesFirst)
     {
-      int err = Interop.PHYSFS_setSaneConfig(organization, appName, archiveExt, includeCdRoms ? 1 : 0, archivesFirst ? 1 : 0);
+      int err = interop.PHYSFS_setSaneConfig(organization, appName, archiveExt, includeCdRoms ? 1 : 0, archivesFirst ? 1 : 0);
       ThrowException(err);
     }
 
@@ -536,9 +443,9 @@ namespace SharpPhysFS
     /// then the function leaves the created directory behind and reports failure.
     /// </para>
     /// <param name="dirName">New dir to create.</param>
-    public static void Mkdir(string dirName)
+    public void Mkdir(string dirName)
     {
-      int err = Interop.PHYSFS_mkdir(dirName);
+      int err = interop.PHYSFS_mkdir(dirName);
       ThrowException(err);
     }
 
@@ -563,9 +470,9 @@ namespace SharpPhysFS
     /// Don't consider this a security method or anything. :)
     /// </para>
     /// <param name="filename">Filename to delete.</param>
-    public static void Delete(string filename)
+    public void Delete(string filename)
     {
-      int err = Interop.PHYSFS_delete(filename);
+      int err = interop.PHYSFS_delete(filename);
       ThrowException(err);
     }
 
@@ -587,9 +494,9 @@ namespace SharpPhysFS
     /// </para>
     /// <param name="filename">File to look for.</param>
     /// <returns>String of element of search path containing the the file in question. null if not found.</returns>
-    public static string GetRealDir(string filename)
+    public string GetRealDir(string filename)
     {
-      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getRealDir(filename));
+      return Marshal.PtrToStringAnsi(interop.PHYSFS_getRealDir(filename));
     }
 
     /// <summary>
@@ -602,9 +509,9 @@ namespace SharpPhysFS
     /// </para>
     /// <param name="fname">Filename in platform-independent notation.</param>
     /// <returns>True if filename exists. false otherwise.</returns>
-    public static bool Exists(string fname)
+    public bool Exists(string fname)
     {
-      return Interop.PHYSFS_exists(fname) != 0;
+      return interop.PHYSFS_exists(fname) != 0;
     }
 
     /// <summary>
@@ -614,9 +521,9 @@ namespace SharpPhysFS
     /// <para>Note that entries that are symlinks are ignored if PhysFS.PermitSymbolicLinks(true) hasn't been called, so you might end up further down in the search path than expected.</para>
     /// <param name="fname">Filename in platform-independent notation.</param>
     /// <returns>True if filename exists and is a directory. False otherwise.</returns>
-    public static bool IsDirectory(string fname)
+    public bool IsDirectory(string fname)
     {
-      return Interop.PHYSFS_isDirectory(fname) != 0;
+      return interop.PHYSFS_isDirectory(fname) != 0;
     }
 
     /// <summary>
@@ -626,9 +533,9 @@ namespace SharpPhysFS
     /// <para>Note that entries that are symlinks are ignored if PhysFS.PermitSymbolicLinks(true) hasn't been called, and as such, this function will always return false in that case.</para>
     /// <param name="fname">Filename in platform-independent notation.</param>
     /// <returns>True if filename exists and is a symlink. False otherwise.</returns>
-    public static bool IsSymbolicLink(string fname)
+    public bool IsSymbolicLink(string fname)
     {
-      return Interop.PHYSFS_isSymbolicLink(fname) != 0;
+      return interop.PHYSFS_isSymbolicLink(fname) != 0;
     }
 
     /// <summary>
@@ -641,9 +548,9 @@ namespace SharpPhysFS
     /// </para>
     /// <param name="fname">Filename to check, in platform-independent notation.</param>
     /// <returns>Last modified time of the file. -1 if it can't be determined.</returns>
-    public static long GetLastModTime(string fname)
+    public long GetLastModTime(string fname)
     {
-      return Interop.PHYSFS_getLastModTime(fname);
+      return interop.PHYSFS_getLastModTime(fname);
     }
 
     /// <summary>
@@ -654,9 +561,9 @@ namespace SharpPhysFS
     /// Before a successful PhysFS.Init() and after PhysFS.Deinit() returns successfully, this will return false. This function is safe to call at any time.
     /// </para>
     /// <returns>True if library is initialized, false if library is not.</returns>
-    public static bool IsInit()
+    public bool IsInit()
     {
-      return Interop.PHYSFS_isInit() != 0;
+      return interop.PHYSFS_isInit() != 0;
     }
 
     /// <summary>
@@ -667,14 +574,14 @@ namespace SharpPhysFS
     /// If PhysFS.PermitSymbolicLinks() hasn't been called since the library was last initialized, symbolic links are implicitly disabled.
     /// </para>
     /// <returns>True if symlinks are permitted, false if not.</returns>
-    public static bool SymbolicLinksPermitted()
+    public bool SymbolicLinksPermitted()
     {
-      return Interop.PHYSFS_symbolicLinksPermitted() != 0;
+      return interop.PHYSFS_symbolicLinksPermitted() != 0;
     }
 
-    public static void SetAllocator(Allocator allocator)
+    public void SetAllocator(Allocator allocator)
     {
-      int err = Interop.PHYSFS_setAllocator(allocator);
+      int err = interop.PHYSFS_setAllocator(allocator);
       ThrowException(err);
     }
 
@@ -690,17 +597,17 @@ namespace SharpPhysFS
     /// This must match the string used when adding, even if your string would also reference the same file with a different string of characters.
     /// </param>
     /// <returns>String of mount point if added to path</returns>
-    public static string GetMountPoint(string dir)
+    public string GetMountPoint(string dir)
     {
-      var s = Marshal.PtrToStringAnsi(Interop.PHYSFS_getMountPoint(dir));
+      var s = Marshal.PtrToStringAnsi(interop.PHYSFS_getMountPoint(dir));
       if(s == null)
       {
-        throw new PhysFSException();
+        throw new PhysFSException(this);
       }
       return s;
     }
 
-    static StringCallback WrapStringCallback<T>(Action<T, string> c)
+    StringCallback WrapStringCallback<T>(Action<T, string> c)
     {
       return (d, s) =>
       {
@@ -709,10 +616,10 @@ namespace SharpPhysFS
       };
     }
 
-    public static void GetCdRomDirsCallback(StringCallback c, object data)
+    public void GetCdRomDirsCallback(StringCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
-      Interop.PHYSFS_getCdRomDirsCallback(c, GCHandle.ToIntPtr(objHandle));
+      interop.PHYSFS_getCdRomDirsCallback(c, GCHandle.ToIntPtr(objHandle));
       objHandle.Free();
     }
 
@@ -722,15 +629,15 @@ namespace SharpPhysFS
     /// <typeparam name="T">Type of data passed to callback</typeparam>
     /// <param name="c">Callback function to notify about detected drives.</param>
     /// <param name="data">Application-defined data passed to callback. Can be null.</param>
-    public static void GetCdRomDirsCallback<T>(Action<T, string> c, T data)
+    public void GetCdRomDirsCallback<T>(Action<T, string> c, T data)
     {
       GetCdRomDirsCallback(WrapStringCallback(c), data);
     }
 
-    public static void GetSearchPathCallback(StringCallback c, object data)
+    public void GetSearchPathCallback(StringCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
-      Interop.PHYSFS_getSearchPathCallback(c, GCHandle.ToIntPtr(objHandle));
+      interop.PHYSFS_getSearchPathCallback(c, GCHandle.ToIntPtr(objHandle));
       objHandle.Free();
     }
 
@@ -740,15 +647,15 @@ namespace SharpPhysFS
     /// <typeparam name="T">Type of data passed to callback</typeparam>
     /// <param name="c">Callback function to notify about search path elements.</param>
     /// <param name="data">Application-defined data passed to callback. Can be null.</param>
-    public static void GetSearchPathCallback<T>(Action<T, string> c, T data)
+    public void GetSearchPathCallback<T>(Action<T, string> c, T data)
     {
       GetSearchPathCallback(WrapStringCallback(c), data);
     }
 
-    public static void EnumerateFilesCallback(string dir, EnumFilesCallback c, object data)
+    public void EnumerateFilesCallback(string dir, EnumFilesCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
-      Interop.PHYSFS_enumerateFilesCallback(dir, c, GCHandle.ToIntPtr(objHandle));
+      interop.PHYSFS_enumerateFilesCallback(dir, c, GCHandle.ToIntPtr(objHandle));
       objHandle.Free();
     }
 
@@ -759,13 +666,36 @@ namespace SharpPhysFS
     /// <param name="dir">Directory, in platform-independent notation, to enumerate.</param>
     /// <param name="c">Callback function to notify about search path elements.</param>
     /// <param name="data">Application-defined data passed to callback. Can be null.</param>
-    public static void EnumerateFilesCallback<T>(string dir, Action<T, string, string> c, T data)
+    public void EnumerateFilesCallback<T>(string dir, Action<T, string, string> c, T data)
     {
       EnumerateFilesCallback(dir, (d, o, n) =>
       {
         var obj = (T)GCHandle.FromIntPtr(d).Target;
         c(obj, o, n);
       }, data);
+    }
+
+    public PhysFSStream OpenAppend(string file)
+    {
+      var handle = LowLevel.OpenAppend(file, this);
+      return new PhysFSStream(this, handle, false);
+    }
+
+    public PhysFSStream OpenRead(string file)
+    {
+      var handle = LowLevel.OpenRead(file, this);
+      return new PhysFSStream(this, handle, true);
+    }
+
+    public PhysFSStream OpenWrite(string file)
+    {
+      var handle = LowLevel.OpenWrite(file, this);
+      return new PhysFSStream(this, handle, false);
+    }
+
+    public void Dispose()
+    {
+      Deinit();
     }
   }
 }

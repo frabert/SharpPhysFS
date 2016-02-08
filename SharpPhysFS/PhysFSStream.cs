@@ -3,33 +3,17 @@ using System.IO;
 
 namespace SharpPhysFS
 {
-  public enum OpenMode
-  {
-    Append,
-    Read,
-    Write
-  }
-
   public class PhysFSStream : Stream
   {
     IntPtr handle;
     bool readOnly = false;
+    PhysFS physFS;
 
-    public PhysFSStream(string filename, OpenMode mode)
+    internal PhysFSStream(PhysFS pfs, IntPtr ptr, bool readOnly)
     {
-      switch (mode)
-      {
-        case OpenMode.Append:
-          handle = PhysFS.LowLevel.OpenAppend(filename);
-          break;
-        case OpenMode.Read:
-          handle = PhysFS.LowLevel.OpenRead(filename);
-          readOnly = true;
-          break;
-        case OpenMode.Write:
-          handle = PhysFS.LowLevel.OpenAppend(filename);
-          break;
-      }
+      handle = ptr;
+      this.readOnly = readOnly;
+      physFS = pfs;
     }
 
     public override bool CanRead
@@ -58,14 +42,14 @@ namespace SharpPhysFS
 
     public override void Flush()
     {
-      PhysFS.LowLevel.Flush(handle);
+      PhysFS.LowLevel.Flush(handle, physFS);
     }
 
     public override long Length
     {
       get
       {
-        return PhysFS.LowLevel.FileLength(handle);
+        return PhysFS.LowLevel.FileLength(handle, physFS);
       }
     }
 
@@ -73,17 +57,17 @@ namespace SharpPhysFS
     {
       get
       {
-        return PhysFS.LowLevel.Tell(handle);
+        return PhysFS.LowLevel.Tell(handle, physFS);
       }
       set
       {
-        PhysFS.LowLevel.Seek(handle, (ulong)value);
+        PhysFS.LowLevel.Seek(handle, (ulong)value, physFS);
       }
     }
 
     public long Read(byte[] buffer, uint offset, uint count)
     {
-      return PhysFS.LowLevel.Read(handle, buffer, 1, count);
+      return PhysFS.LowLevel.Read(handle, buffer, 1, count, physFS);
     }
 
     public override int Read(byte[] buffer, int offset, int count)
@@ -97,22 +81,17 @@ namespace SharpPhysFS
       if (origin == SeekOrigin.Begin)
         pos = 0;
       else if (origin == SeekOrigin.Current)
-        pos = PhysFS.LowLevel.Tell(handle);
+        pos = PhysFS.LowLevel.Tell(handle, physFS);
       else
-        pos = PhysFS.LowLevel.FileLength(handle);
+        pos = PhysFS.LowLevel.FileLength(handle, physFS);
 
-      PhysFS.LowLevel.Seek(handle, (ulong)(pos + offset));
+      PhysFS.LowLevel.Seek(handle, (ulong)(pos + offset), physFS);
       return pos + offset;
-    }
-
-    public override void SetLength(long value)
-    {
-      throw new NotImplementedException();
     }
 
     public long Write(byte[] buffer, uint offset, uint count)
     {
-      return PhysFS.LowLevel.Write(handle, buffer, 1, count);
+      return PhysFS.LowLevel.Write(handle, buffer, 1, count, physFS);
     }
 
     public override void Write(byte[] buffer, int offset, int count)
@@ -120,18 +99,20 @@ namespace SharpPhysFS
       Write(buffer, (uint)offset, (uint)count);
     }
 
-    public override void Close()
+    public override void SetLength(long value)
     {
-      PhysFS.LowLevel.Close(handle);
-      handle = IntPtr.Zero;
-      base.Close();
+      throw new NotImplementedException();
     }
 
     protected override void Dispose(bool disposing)
     {
-      if(handle != IntPtr.Zero)
+      if(disposing)
       {
-        Close();
+        if (handle != IntPtr.Zero)
+        {
+          PhysFS.LowLevel.Close(handle, physFS);
+          handle = IntPtr.Zero;
+        }
       }
       base.Dispose(disposing);
     }
