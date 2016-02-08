@@ -14,7 +14,7 @@ namespace SharpPhysFS
   public delegate IntPtr ReallocDelegate(IntPtr ptr, ulong size);
   [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
   public delegate void FreeDelegate(IntPtr ptr);
-
+  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
   public delegate void StringCallback(IntPtr data, string str);
   [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
   public delegate void EnumFilesCallback(IntPtr data, string origdir, string fname);
