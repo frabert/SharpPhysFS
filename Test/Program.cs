@@ -291,7 +291,9 @@ namespace Test
         Console.WriteLine("Usage: cat <file>");
         return false;
       }
-      using (var reader = new System.IO.StreamReader(physFS.OpenRead(args[0])))
+
+      using (var stream = physFS.OpenRead(args[0]))
+      using (var reader = new System.IO.StreamReader(stream))
       {
         Console.WriteLine(reader.ReadToEnd());
       }

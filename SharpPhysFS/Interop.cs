@@ -249,7 +249,7 @@ namespace SharpPhysFS
         var funcPtr = loadSymbol(library, field.Name);
         var del = Marshal.GetDelegateForFunctionPointer(funcPtr, field.FieldType);
 
-        field.SetValue(null, del);
+        field.SetValue(this, del);
       }
     }
   }
