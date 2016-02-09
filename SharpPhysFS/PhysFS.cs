@@ -693,9 +693,25 @@ namespace SharpPhysFS
       return new PhysFSStream(this, handle, false);
     }
 
+    bool disposed = false;
+
+    protected virtual void Dispose(bool disposing)
+    {
+      if (!disposed)
+      {
+        if (disposing)
+        {
+          Deinit();
+          interop.Dispose();
+        }
+
+        disposed = true;
+      }
+    }
+
     public void Dispose()
     {
-      Deinit();
+      Dispose(true);
     }
   }
 }
