@@ -662,7 +662,7 @@ namespace SharpPhysFS
     /// <summary>
     /// Get a file listing of a search path's directory, using an application-defined callback.
     /// </summary>
-    /// <typeparam name="T">Type of data passed to callbakc</typeparam>
+    /// <typeparam name="T">Type of data passed to callback</typeparam>
     /// <param name="dir">Directory, in platform-independent notation, to enumerate.</param>
     /// <param name="c">Callback function to notify about search path elements.</param>
     /// <param name="data">Application-defined data passed to callback. Can be null.</param>
