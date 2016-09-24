@@ -10,7 +10,7 @@ The documentation for the methods is copied from the original doxygen and only s
 
 ## Platform support
 
-The library is designed to work regardlessly of the underlying OS, so it should work on Windows, Linux
+The library is designed to work regardless of the underlying OS, so it should run on Windows, Linux
 and OSX equally well. I haven't tested the OSX port though, and I only superficially tried it on Linux.
 
 If anyone feels so inclined, he/she could contribute by testing it and reporting the results. This would
