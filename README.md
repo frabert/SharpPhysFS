@@ -22,3 +22,8 @@ You can use this library by compiling it as described in the [wiki](https://gith
 or by adding it as a reference using NuGet:
 
     Install-Package SharpPhysFS
+
+## Support on Beerpay
+Hey dude! Help me out for a couple of :beers:!
+
+[![Beerpay](https://beerpay.io/frabert/SharpPhysFS/badge.svg?style=beer-square)](https://beerpay.io/frabert/SharpPhysFS)  [![Beerpay](https://beerpay.io/frabert/SharpPhysFS/make-wish.svg?style=flat-square)](https://beerpay.io/frabert/SharpPhysFS?focus=wish)
