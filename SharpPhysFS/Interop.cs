@@ -99,6 +99,7 @@ namespace SharpPhysFS
   }
 
   class Interop
+    : IDisposable
   {
     InvalidOperationException initException = new InvalidOperationException("Callbacks not initialized yet");
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -201,6 +202,11 @@ namespace SharpPhysFS
       : this($"{libname}.dll", $"{libname}.dylib", $"{libname}.so")
     { }
 
+    Func<string, IntPtr> loadLibrary;
+    Func<IntPtr, string, IntPtr> loadSymbol;
+    Func<IntPtr, bool> freeLibrary;
+    IntPtr library;
+
     public Interop(string winlib, string maclib, string unixlib)
     {
       /* This method is used to dynamically load the physfs
@@ -212,28 +218,27 @@ namespace SharpPhysFS
        * pointers from the loaded library
        */
 
-      Func<string, IntPtr> loadLibrary;
-      Func<IntPtr, string, IntPtr> loadSymbol;
       string libraryName;
-
-      IntPtr library;
 
       if (Environment.OSVersion.Platform == PlatformID.Win32NT)
       {
         loadLibrary = DynamicLoader.LoadLibrary;
         loadSymbol = DynamicLoader.GetProcAddress;
+        freeLibrary = DynamicLoader.FreeLibrary;
         libraryName = winlib;
       }
       else if(Environment.OSVersion.Platform == PlatformID.MacOSX)
       {
         loadLibrary = n => DynamicLoader.osx_dlopen(n, 1);
         loadSymbol = DynamicLoader.osx_dlsym;
+        freeLibrary = DynamicLoader.osx_dlclose;
         libraryName = maclib;
       }
       else
       {
         loadLibrary = n => DynamicLoader.unix_dlopen(n, 1);
         loadSymbol = DynamicLoader.unix_dlsym;
+        freeLibrary = DynamicLoader.unix_dlclose;
         libraryName = unixlib;
       }
 
@@ -253,5 +258,29 @@ namespace SharpPhysFS
         field.SetValue(this, del);
       }
     }
+
+    #region IDisposable Support
+    private bool disposedValue = false; // To detect redundant calls
+
+    protected virtual void Dispose(bool disposing)
+    {
+      if (!disposedValue)
+      {
+        /*if (disposing)
+        {
+          // TODO: dispose managed state (managed objects).
+        }*/
+
+        freeLibrary(library);
+
+        disposedValue = true;
+      }
+    }
+
+    public void Dispose()
+    {
+      Dispose(true);
+    }
+    #endregion
   }
 }

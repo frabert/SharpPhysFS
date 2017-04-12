@@ -684,7 +684,7 @@ namespace SharpPhysFS
     /// <see cref="EnumerateFilesCallback(string, Action{string, string})"/> if you don't need
     /// to pass custom data to the callback.
     /// </remarks>
-    /// <typeparam name="T">Type of data passed to callbakc</typeparam>
+    /// <typeparam name="T">Type of data passed to callback</typeparam>
     /// <param name="dir">Directory, in platform-independent notation, to enumerate.</param>
     /// <param name="c">Callback function to notify about search path elements.</param>
     /// <param name="data">Application-defined data passed to callback. Can be null.</param>
@@ -725,9 +725,25 @@ namespace SharpPhysFS
       return new PhysFSStream(this, handle, false);
     }
 
+    bool disposed = false;
+
+    protected virtual void Dispose(bool disposing)
+    {
+      if (!disposed)
+      {
+        if (disposing)
+        {
+          Deinit();
+          interop.Dispose();
+        }
+
+        disposed = true;
+      }
+    }
+
     public void Dispose()
     {
-      Deinit();
+      Dispose(true);
     }
   }
 }
