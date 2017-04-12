@@ -178,10 +178,7 @@ namespace SharpPhysFS
     public string[] EnumerateFiles(string dir)
     {
       var list = new List<string>();
-      EnumerateFilesCallback(dir, (d, o, f) =>
-      {
-        list.Add(f);
-      }, null);
+      EnumerateFilesCallback(dir, (o, f) => list.Add(f));
       return list.ToArray();
     }
 
@@ -258,10 +255,7 @@ namespace SharpPhysFS
     public string[] GetCdRomDirs()
     {
       var list = new List<string>();
-      GetCdRomDirsCallback((d, s) =>
-      {
-        list.Add(s);
-      }, null);
+      GetCdRomDirsCallback((s) => list.Add(s));
       return list.ToArray();
     }
 
@@ -359,13 +353,8 @@ namespace SharpPhysFS
     /// </summary>
     public string[] GetSearchPath()
     {
-      //var dirs = Interop.PHYSFS_getSearchPath();
-      //return GenEnumerable(dirs);
       var list = new List<string>();
-      GetSearchPathCallback((d, s) =>
-      {
-        list.Add(s);
-      }, null);
+      GetSearchPathCallback((s) => list.Add(s));
       return list.ToArray();
     }
 
@@ -616,6 +605,7 @@ namespace SharpPhysFS
       };
     }
 
+    [Obsolete("The non-generic variant of GetCdRomDirsCallback is meant for internal use only. Consider using one of the generic alternatives.")]
     public void GetCdRomDirsCallback(StringCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
@@ -626,6 +616,10 @@ namespace SharpPhysFS
     /// <summary>
     /// Enumerate CD-ROM directories, using an application-defined callback.
     /// </summary>
+    /// <remarks>
+    /// <see cref="GetCdRomDirsCallback(Action{string})"/> if you don't need to pass
+    /// custom data to the callback.
+    /// </remarks>
     /// <typeparam name="T">Type of data passed to callback</typeparam>
     /// <param name="c">Callback function to notify about detected drives.</param>
     /// <param name="data">Application-defined data passed to callback. Can be null.</param>
@@ -634,6 +628,16 @@ namespace SharpPhysFS
       GetCdRomDirsCallback(WrapStringCallback(c), data);
     }
 
+    /// <summary>
+    /// Enumerate CD-ROM directories, using an application-defined callback.
+    /// </summary>
+    /// <param name="c">Callback function to notify about detected drives.</param>
+    public void GetCdRomDirsCallback(Action<string> c)
+    {
+      interop.PHYSFS_getCdRomDirsCallback((p, s) => c(s), IntPtr.Zero);
+    }
+
+    [Obsolete("The non-generic variant of GetSearchPathCallback is meant for internal use only. Consider using one of the generic alternatives.")]
     public void GetSearchPathCallback(StringCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
@@ -644,6 +648,10 @@ namespace SharpPhysFS
     /// <summary>
     /// Enumerate the search path, using an application-defined callback.
     /// </summary>
+    /// <remarks>
+    /// <see cref="GetSearchPathCallback(Action{string})"/> if you don't need to pass
+    /// custom data to the callback.
+    /// </remarks>
     /// <typeparam name="T">Type of data passed to callback</typeparam>
     /// <param name="c">Callback function to notify about search path elements.</param>
     /// <param name="data">Application-defined data passed to callback. Can be null.</param>
@@ -652,6 +660,16 @@ namespace SharpPhysFS
       GetSearchPathCallback(WrapStringCallback(c), data);
     }
 
+    /// <summary>
+    /// Enumerate the search path, using an application-defined callback.
+    /// </summary>
+    /// <param name="c">Callback function to notify about search path elements.</param>
+    public void GetSearchPathCallback(Action<string> c)
+    {
+      interop.PHYSFS_getSearchPathCallback((p, s) => c(s), IntPtr.Zero);
+    }
+    
+    [Obsolete("The non-generic variant of EnumerateFilesCallback is meant for internal use only. Consider using one of the generic alternatives.")]
     public void EnumerateFilesCallback(string dir, EnumFilesCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
@@ -662,6 +680,10 @@ namespace SharpPhysFS
     /// <summary>
     /// Get a file listing of a search path's directory, using an application-defined callback.
     /// </summary>
+    /// <remarks>
+    /// <see cref="EnumerateFilesCallback(string, Action{string, string})"/> if you don't need
+    /// to pass custom data to the callback.
+    /// </remarks>
     /// <typeparam name="T">Type of data passed to callbakc</typeparam>
     /// <param name="dir">Directory, in platform-independent notation, to enumerate.</param>
     /// <param name="c">Callback function to notify about search path elements.</param>
@@ -673,6 +695,16 @@ namespace SharpPhysFS
         var obj = (T)GCHandle.FromIntPtr(d).Target;
         c(obj, o, n);
       }, data);
+    }
+
+    /// <summary>
+    /// Get a file listing of a search path's directory, using an application-defined callback.
+    /// </summary>
+    /// <param name="dir">Directory, in platform-independent notation, to enumerate.</param>
+    /// <param name="c">Callback function to notify about search path elements.</param>
+    public void EnumerateFilesCallback(string dir, Action<string, string> c)
+    {
+      interop.PHYSFS_enumerateFilesCallback(dir, (data, origdir, fname) => c(origdir, fname), IntPtr.Zero);
     }
 
     public PhysFSStream OpenAppend(string file)
