@@ -4,7 +4,7 @@ namespace SharpPhysFS
 {
   public partial class PhysFS
   {
-    public static class LowLevel
+    internal static class LowLevel
     {
       public static IntPtr OpenWrite(string filename, PhysFS physFS)
       {

@@ -604,9 +604,8 @@ namespace SharpPhysFS
         c(obj, s);
       };
     }
-
-    [Obsolete("The non-generic variant of GetCdRomDirsCallback is meant for internal use only. Consider using one of the generic alternatives.")]
-    public void GetCdRomDirsCallback(StringCallback c, object data)
+    
+    void GetCdRomDirsCallback(StringCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
       interop.PHYSFS_getCdRomDirsCallback(c, GCHandle.ToIntPtr(objHandle));
@@ -636,9 +635,8 @@ namespace SharpPhysFS
     {
       interop.PHYSFS_getCdRomDirsCallback((p, s) => c(s), IntPtr.Zero);
     }
-
-    [Obsolete("The non-generic variant of GetSearchPathCallback is meant for internal use only. Consider using one of the generic alternatives.")]
-    public void GetSearchPathCallback(StringCallback c, object data)
+    
+    void GetSearchPathCallback(StringCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
       interop.PHYSFS_getSearchPathCallback(c, GCHandle.ToIntPtr(objHandle));
@@ -669,8 +667,7 @@ namespace SharpPhysFS
       interop.PHYSFS_getSearchPathCallback((p, s) => c(s), IntPtr.Zero);
     }
     
-    [Obsolete("The non-generic variant of EnumerateFilesCallback is meant for internal use only. Consider using one of the generic alternatives.")]
-    public void EnumerateFilesCallback(string dir, EnumFilesCallback c, object data)
+    void EnumerateFilesCallback(string dir, EnumFilesCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
       interop.PHYSFS_enumerateFilesCallback(dir, c, GCHandle.ToIntPtr(objHandle));
