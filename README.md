@@ -10,7 +10,7 @@ The documentation for the methods is copied from the original doxygen and only s
 
 ## Platform support
 
-The library is designed to work regardlessly of the underlying OS, so it should work on Windows, Linux
+The library is designed to work regardless of the underlying OS, so it should run on Windows, Linux
 and OSX equally well. I haven't tested the OSX port though, and I only superficially tried it on Linux.
 
 If anyone feels so inclined, he/she could contribute by testing it and reporting the results. This would
@@ -22,3 +22,21 @@ You can use this library by compiling it as described in the [wiki](https://gith
 or by adding it as a reference using NuGet:
 
     Install-Package SharpPhysFS
+
+You should also include compiled shared library of physfs alongside your binary files to be loaded.
+
+## Usage
+
+````c#
+using(var pfs = new PhysFS("")) // This ensures correct initialization and deinitialization
+using(var stream = pfs.OpenRead("/helloworld.txt"))
+{
+  var reader = new StreamReader(stream);
+  var contents = reader.ReadToEnd();
+}
+````
+
+## Support on Beerpay
+Hey dude! Help me out for a couple of :beers:!
+
+[![Beerpay](https://beerpay.io/frabert/SharpPhysFS/badge.svg?style=beer-square)](https://beerpay.io/frabert/SharpPhysFS)  [![Beerpay](https://beerpay.io/frabert/SharpPhysFS/make-wish.svg?style=flat-square)](https://beerpay.io/frabert/SharpPhysFS?focus=wish)
