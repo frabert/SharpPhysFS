@@ -101,7 +101,6 @@ namespace SharpPhysFS
   class Interop
     : IDisposable
   {
-    InvalidOperationException initException = new InvalidOperationException("Callbacks not initialized yet");
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void FnGetLinkedVersion(ref Version v);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -148,51 +147,51 @@ namespace SharpPhysFS
     // When the callbacks are not yet initialized, instead of throwing a
     // null reference exception we explain the problem.
     // I think it makes for a more graceful failure.
-    public FnGetLinkedVersion PHYSFS_getLinkedVersion             => throw initException;
-    public FnInit PHYSFS_init                                     => throw initException; 
-    public FnDeinit PHYSFS_deinit                                 => throw initException;
-    public FnSupportedArchiveTypes PHYSFS_supportedArchiveTypes   => throw initException; 
-    public FnFreeList PHYSFS_freeList                             => throw initException; 
-    public FnGetLastError PHYSFS_getLastError                     => throw initException; 
-    public FnGetLastError PHYSFS_getDirSeparator                  => throw initException; 
-    public FnPermitSymbolicLinks PHYSFS_permitSymbolicLinks       => throw initException; 
-    public FnSupportedArchiveTypes PHYSFS_getCdRomDirs            => throw initException; 
-    public FnGetLastError PHYSFS_getBaseDir                       => throw initException; 
-    public FnGetLastError PHYSFS_getUserDir                       => throw initException; 
-    public FnGetLastError PHYSFS_getWriteDir                      => throw initException; 
-    public FnSetWriteDir PHYSFS_setWriteDir                       => throw initException; 
-    public FnAddToSearchPath PHYSFS_addToSearchPath               => throw initException; 
-    public FnSetWriteDir PHYSFS_removeFromSearchPath              => throw initException; 
-    public FnSupportedArchiveTypes PHYSFS_getSearchPath           => throw initException; 
-    public FnSetSaneConfig PHYSFS_setSaneConfig                   => throw initException; 
-    public FnSetWriteDir PHYSFS_mkdir                             => throw initException; 
-    public FnSetWriteDir PHYSFS_delete                            => throw initException; 
-    public FnEnumerateFiles PHYSFS_getRealDir                     => throw initException; 
-    public FnEnumerateFiles PHYSFS_enumerateFiles                 => throw initException; 
-    public FnSetWriteDir PHYSFS_exists                            => throw initException; 
-    public FnSetWriteDir PHYSFS_isDirectory                       => throw initException; 
-    public FnSetWriteDir PHYSFS_isSymbolicLink                    => throw initException; 
-    public FnGetLastModTime PHYSFS_getLastModTime                 => throw initException; 
-    public FnEnumerateFiles PHYSFS_openWrite                      => throw initException; 
-    public FnEnumerateFiles PHYSFS_openAppend                     => throw initException; 
-    public FnEnumerateFiles PHYSFS_openRead                       => throw initException; 
-    public FnClose PHYSFS_close                                   => throw initException; 
-    public FnRead PHYSFS_read                                     => throw initException; 
-    public FnRead PHYSFS_write                                    => throw initException; 
-    public FnClose PHYSFS_eof                                     => throw initException; 
-    public FnTell PHYSFS_tell                                     => throw initException; 
-    public FnSeek PHYSFS_seek                                     => throw initException; 
-    public FnFileLength PHYSFS_fileLength                         => throw initException; 
-    public FnSeek PHYSFS_setBuffer                                => throw initException; 
-    public FnClose PHYSFS_flush                                   => throw initException; 
-    public FnDeinit PHYSFS_isInit                                 => throw initException; 
-    public FnDeinit PHYSFS_symbolicLinksPermitted                 => throw initException; 
-    public FnSetAllocator PHYSFS_setAllocator                     => throw initException; 
-    public FnMount PHYSFS_mount                                   => throw initException; 
-    public FnEnumerateFiles PHYSFS_getMountPoint                  => throw initException; 
-    public FnGetCdRomDirsCallback PHYSFS_getCdRomDirsCallback     => throw initException; 
-    public FnGetCdRomDirsCallback PHYSFS_getSearchPathCallback    => throw initException; 
-    public FnEnumerateFilesCallback PHYSFS_enumerateFilesCallback => throw initException; 
+    public FnGetLinkedVersion PHYSFS_getLinkedVersion = (ref Version v) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnInit PHYSFS_init = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnDeinit PHYSFS_deinit = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSupportedArchiveTypes PHYSFS_supportedArchiveTypes = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnFreeList PHYSFS_freeList = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnGetLastError PHYSFS_getLastError = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnGetLastError PHYSFS_getDirSeparator = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnPermitSymbolicLinks PHYSFS_permitSymbolicLinks = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSupportedArchiveTypes PHYSFS_getCdRomDirs = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnGetLastError PHYSFS_getBaseDir = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnGetLastError PHYSFS_getUserDir = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnGetLastError PHYSFS_getWriteDir = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSetWriteDir PHYSFS_setWriteDir = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnAddToSearchPath PHYSFS_addToSearchPath = (a, b) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSetWriteDir PHYSFS_removeFromSearchPath = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSupportedArchiveTypes PHYSFS_getSearchPath = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSetSaneConfig PHYSFS_setSaneConfig = (a, b, c, d, e) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSetWriteDir PHYSFS_mkdir = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSetWriteDir PHYSFS_delete = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnEnumerateFiles PHYSFS_getRealDir = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnEnumerateFiles PHYSFS_enumerateFiles = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSetWriteDir PHYSFS_exists = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSetWriteDir PHYSFS_isDirectory = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSetWriteDir PHYSFS_isSymbolicLink = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnGetLastModTime PHYSFS_getLastModTime = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnEnumerateFiles PHYSFS_openWrite = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnEnumerateFiles PHYSFS_openAppend = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnEnumerateFiles PHYSFS_openRead = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnClose PHYSFS_close = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnRead PHYSFS_read = (a, b, c, d) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnRead PHYSFS_write = (a, b, c, d) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnClose PHYSFS_eof = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnTell PHYSFS_tell = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSeek PHYSFS_seek = (a, b) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnFileLength PHYSFS_fileLength = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSeek PHYSFS_setBuffer = (a, b) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnClose PHYSFS_flush = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnDeinit PHYSFS_isInit = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnDeinit PHYSFS_symbolicLinksPermitted = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnSetAllocator PHYSFS_setAllocator = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnMount PHYSFS_mount = (a, b, c) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnEnumerateFiles PHYSFS_getMountPoint = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnGetCdRomDirsCallback PHYSFS_getCdRomDirsCallback = (a, b) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnGetCdRomDirsCallback PHYSFS_getSearchPathCallback = (a, b) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    public FnEnumerateFilesCallback PHYSFS_enumerateFilesCallback = (a, b, c) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
 
     public Interop()
       : this("physfs.dll", "libphysfs.dylib", "libphysfs.so")
