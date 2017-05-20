@@ -32,6 +32,12 @@ namespace SharpPhysFS
       Init(argv0);
     }
 
+    public PhysFS(string argv0, string libname)
+    {
+      interop = new Interop(libname);
+      Init(argv0);
+    }
+
     static T FromPtr<T>(IntPtr ptr)
     {
       return (T)Marshal.PtrToStructure(ptr, typeof(T));
