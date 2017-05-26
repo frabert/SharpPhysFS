@@ -4,19 +4,19 @@ using System.Runtime.InteropServices;
 
 namespace SharpPhysFS
 {
-  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+  [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
   public delegate int InitDelegate();
-  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+  [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
   public delegate void DeinitDelegate();
-  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+  [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
   public delegate IntPtr MallocDelegate(ulong size);
-  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+  [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
   public delegate IntPtr ReallocDelegate(IntPtr ptr, ulong size);
-  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+  [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
   public delegate void FreeDelegate(IntPtr ptr);
-  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+  [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
   public delegate void StringCallback(IntPtr data, string str);
-  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+  [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
   public delegate void EnumFilesCallback(IntPtr data, string origdir, string fname);
 
   [StructLayout(LayoutKind.Sequential)]
@@ -62,224 +62,141 @@ namespace SharpPhysFS
     public FreeDelegate Free;
   }
 
-  static class DynamicLoader
+  static class Interop
   {
-    #region Windows
-    [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern IntPtr LoadLibrary(string lpFileName);
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern void PHYSFS_getLinkedVersion(ref Version v);
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-    public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_init(string argv0);
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-    public static extern bool FreeLibrary(IntPtr hModule);
-    #endregion
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_deinit();
 
-    #region Unix
-    [DllImport("libdl.so", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dlopen")]
-    public static extern IntPtr unix_dlopen(string filename, int flags);
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_supportedArchiveTypes();
 
-    [DllImport("libdl.so", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dlsym")]
-    public static extern IntPtr unix_dlsym(IntPtr handle, string symbol);
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern void PHYSFS_freeList(IntPtr h);
 
-    [DllImport("libdl.so", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dlclose")]
-    public static extern bool unix_dlclose(IntPtr handle);
-    #endregion
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_getLastError();
 
-    #region OSX
-    [DllImport("libdyld.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dlopen")]
-    public static extern IntPtr osx_dlopen(string filename, int flags);
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_getDirSeparator();
 
-    [DllImport("libdyld.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dlsym")]
-    public static extern IntPtr osx_dlsym(IntPtr handle, string symbol);
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern void PHYSFS_permitSymbolicLinks(int permit);
 
-    [DllImport("libdyld.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dlclose")]
-    public static extern bool osx_dlclose(IntPtr handle);
-    #endregion
-  }
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_getCdRomDirs();
 
-  class Interop
-    : IDisposable
-  {
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void FnGetLinkedVersion(ref Version v);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int FnInit(string argv0);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int FnDeinit();
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int FnClose(IntPtr ptr);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate IntPtr FnSupportedArchiveTypes();
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void FnFreeList(IntPtr h);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate IntPtr FnGetLastError();
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void FnPermitSymbolicLinks(int permit);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int FnSetWriteDir(string s);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int FnAddToSearchPath(string s, int i);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int FnSetSaneConfig(string s1, string s2, string s3, int i1, int i2);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate IntPtr FnEnumerateFiles(string s);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate long FnGetLastModTime(string s);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate long FnRead(IntPtr ptr1, IntPtr ptr2, uint i1, uint i2);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate long FnTell(IntPtr ptr);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int FnSeek(IntPtr ptr, ulong u);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate long FnFileLength(IntPtr ptr);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int FnSetAllocator(Allocator alloc);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int FnMount(string s1, string s2, int i);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void FnGetCdRomDirsCallback(StringCallback c, IntPtr ptr);
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void FnEnumerateFilesCallback(string s, EnumFilesCallback c, IntPtr ptr);
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_getBaseDir();
 
-    // When the callbacks are not yet initialized, instead of throwing a
-    // null reference exception we explain the problem.
-    // I think it makes for a more graceful failure.
-    public FnGetLinkedVersion PHYSFS_getLinkedVersion = (ref Version v) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnInit PHYSFS_init = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnDeinit PHYSFS_deinit = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSupportedArchiveTypes PHYSFS_supportedArchiveTypes = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnFreeList PHYSFS_freeList = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnGetLastError PHYSFS_getLastError = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnGetLastError PHYSFS_getDirSeparator = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnPermitSymbolicLinks PHYSFS_permitSymbolicLinks = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSupportedArchiveTypes PHYSFS_getCdRomDirs = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnGetLastError PHYSFS_getBaseDir = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnGetLastError PHYSFS_getUserDir = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnGetLastError PHYSFS_getWriteDir = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSetWriteDir PHYSFS_setWriteDir = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnAddToSearchPath PHYSFS_addToSearchPath = (a, b) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSetWriteDir PHYSFS_removeFromSearchPath = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSupportedArchiveTypes PHYSFS_getSearchPath = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSetSaneConfig PHYSFS_setSaneConfig = (a, b, c, d, e) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSetWriteDir PHYSFS_mkdir = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSetWriteDir PHYSFS_delete = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnEnumerateFiles PHYSFS_getRealDir = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnEnumerateFiles PHYSFS_enumerateFiles = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSetWriteDir PHYSFS_exists = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSetWriteDir PHYSFS_isDirectory = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSetWriteDir PHYSFS_isSymbolicLink = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnGetLastModTime PHYSFS_getLastModTime = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnEnumerateFiles PHYSFS_openWrite = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnEnumerateFiles PHYSFS_openAppend = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnEnumerateFiles PHYSFS_openRead = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnClose PHYSFS_close = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnRead PHYSFS_read = (a, b, c, d) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnRead PHYSFS_write = (a, b, c, d) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnClose PHYSFS_eof = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnTell PHYSFS_tell = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSeek PHYSFS_seek = (a, b) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnFileLength PHYSFS_fileLength = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSeek PHYSFS_setBuffer = (a, b) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnClose PHYSFS_flush = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnDeinit PHYSFS_isInit = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnDeinit PHYSFS_symbolicLinksPermitted = () => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnSetAllocator PHYSFS_setAllocator = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnMount PHYSFS_mount = (a, b, c) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnEnumerateFiles PHYSFS_getMountPoint = (a) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnGetCdRomDirsCallback PHYSFS_getCdRomDirsCallback = (a, b) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnGetCdRomDirsCallback PHYSFS_getSearchPathCallback = (a, b) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
-    public FnEnumerateFilesCallback PHYSFS_enumerateFilesCallback = (a, b, c) => { throw new InvalidOperationException("Callbacks not initialized yet"); };
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_getUserDir();
 
-    public Interop()
-      : this("physfs.dll", "libphysfs.dylib", "libphysfs.so")
-    { }
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_getWriteDir();
 
-    public Interop(string libname)
-      : this($"{libname}.dll", $"{libname}.dylib", $"{libname}.so")
-    { }
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_setWriteDir(string s);
 
-    Func<string, IntPtr> loadLibrary;
-    Func<IntPtr, string, IntPtr> loadSymbol;
-    Func<IntPtr, bool> freeLibrary;
-    IntPtr library;
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_addToSearchPath(string s, int i);
 
-    public Interop(string winlib, string maclib, string unixlib)
-    {
-      /* This method is used to dynamically load the physfs
-       * library. It works by detecting the current platform
-       * and deciding whether to use LoadLibrary/GetProcAddr
-       * on Windows or dlopen/dlsym on Linux and OSX.
-       * The the class is then scanned using reflection
-       * to populate all the callbacks with the right function
-       * pointers from the loaded library
-       */
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_removeFromSearchPath(string s);
 
-      string libraryName;
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_getSearchPath();
 
-      if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-      {
-        loadLibrary = DynamicLoader.LoadLibrary;
-        loadSymbol = DynamicLoader.GetProcAddress;
-        freeLibrary = DynamicLoader.FreeLibrary;
-        libraryName = winlib;
-      }
-      else if(Environment.OSVersion.Platform == PlatformID.MacOSX)
-      {
-        loadLibrary = n => DynamicLoader.osx_dlopen(n, 1);
-        loadSymbol = DynamicLoader.osx_dlsym;
-        freeLibrary = DynamicLoader.osx_dlclose;
-        libraryName = maclib;
-      }
-      else
-      {
-        loadLibrary = n => DynamicLoader.unix_dlopen(n, 1);
-        loadSymbol = DynamicLoader.unix_dlsym;
-        freeLibrary = DynamicLoader.unix_dlclose;
-        libraryName = unixlib;
-      }
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_setSaneConfig(string s1, string s2, string s3, int i1, int i2);
 
-      library = loadLibrary(libraryName);
-      if (library == IntPtr.Zero)
-      {
-        throw new PhysFSLibNotFound();
-      }
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_mkdir(string s);
 
-      var fields = typeof(Interop).GetFields();
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_delete(string s);
 
-      foreach(var field in fields.Where(x => x.Name.StartsWith("PHYSFS_")))
-      {
-        var funcPtr = loadSymbol(library, field.Name);
-        var del = Marshal.GetDelegateForFunctionPointer(funcPtr, field.FieldType);
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_getRealDir(string s);
 
-        field.SetValue(this, del);
-      }
-    }
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_enumerateFiles(string s);
 
-    #region IDisposable Support
-    private bool disposedValue = false; // To detect redundant calls
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_exists(string s);
 
-    protected virtual void Dispose(bool disposing)
-    {
-      if (!disposedValue)
-      {
-        /*if (disposing)
-        {
-          // TODO: dispose managed state (managed objects).
-        }*/
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_isDirectory(string s);
 
-        freeLibrary(library);
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_isSymbolicLink(string s);
 
-        disposedValue = true;
-      }
-    }
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern long PHYSFS_getLastModTime(string s);
 
-    public void Dispose()
-    {
-      Dispose(true);
-    }
-    #endregion
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_openWrite(string s);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_openAppend(string s);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_openRead(string s);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_close(IntPtr ptr);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern long PHYSFS_read(IntPtr ptr1, IntPtr ptr2, uint i1, uint i2);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern long PHYSFS_write(IntPtr ptr1, IntPtr ptr2, uint i1, uint i2);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_eof(IntPtr ptr);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern long PHYSFS_tell(IntPtr ptr);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_seek(IntPtr ptr, ulong u);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern long PHYSFS_fileLength(IntPtr ptr);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_setBuffer(IntPtr ptr, ulong u);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_flush(IntPtr ptr);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_isInit();
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_symbolicLinksPermitted();
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_setAllocator(Allocator alloc);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_mount(string s1, string s2, int i);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern IntPtr PHYSFS_getMountPoint(string s);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern void PHYSFS_getCdRomDirsCallback(StringCallback c, IntPtr p);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern void PHYSFS_getSearchPathCallback(StringCallback c, IntPtr p);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern void PHYSFS_enumerateFilesCallback(string s, EnumFilesCallback c, IntPtr p);
   }
 }

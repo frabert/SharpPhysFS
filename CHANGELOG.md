@@ -11,3 +11,6 @@
 ## Version 0.2.0
 - New dataless enumeration functions are available now, which do not cause GC havoc
 - Unsafe enumeration functions are now marked obsolete
+
+## Version 1.0.0
+- DLL configuration on platforms other than Windows is done via app.config now, as per http://www.mono-project.com/docs/advanced/pinvoke/dllmap/
