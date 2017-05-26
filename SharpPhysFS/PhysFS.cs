@@ -24,11 +24,13 @@ namespace SharpPhysFS
       { }
     }
 
-    Interop interop;
-
     public PhysFS(string argv0)
     {
-      interop = new Interop();
+      Init(argv0);
+    }
+
+    public PhysFS(string argv0, string libname)
+    {
       Init(argv0);
     }
 
@@ -52,7 +54,7 @@ namespace SharpPhysFS
     public Version GetLinkedVersion()
     {
       Version v = new Version();
-      interop.PHYSFS_getLinkedVersion(ref v);
+      Interop.PHYSFS_getLinkedVersion(ref v);
       return v;
     }
 
@@ -67,7 +69,7 @@ namespace SharpPhysFS
     /// <param name="argv0">This should be the path of the executable (first arguments passed to main function in C programs)</param>
     public void Init(string argv0)
     {
-      int err = interop.PHYSFS_init(argv0);
+      int err = Interop.PHYSFS_init(argv0);
       ThrowException(err);
     }
 
@@ -90,7 +92,7 @@ namespace SharpPhysFS
     /// </remarks>
     public void Deinit()
     {
-      int err = interop.PHYSFS_deinit();
+      int err = Interop.PHYSFS_deinit();
       ThrowException(err);
     }
 
@@ -117,7 +119,7 @@ namespace SharpPhysFS
     /// <param name="appendToPath">True to append to search path, false to prepend.</param>
     public void Mount(string dir, string mountPoint, bool appendToPath)
     {
-      int err = interop.PHYSFS_mount(dir, mountPoint, appendToPath ? 1 : 0);
+      int err = Interop.PHYSFS_mount(dir, mountPoint, appendToPath ? 1 : 0);
       ThrowException(err);
     }
 
@@ -134,7 +136,7 @@ namespace SharpPhysFS
     /// <returns>String of last error message.</returns>
     public string GetLastError()
     {
-      return Marshal.PtrToStringAnsi(interop.PHYSFS_getLastError());
+      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getLastError());
     }
 
     /// <summary>
@@ -150,7 +152,7 @@ namespace SharpPhysFS
     /// <returns>Platform-dependent dir separator string</returns>
     public string GetDirSeparator()
     {
-      return Marshal.PtrToStringAnsi(interop.PHYSFS_getDirSeparator());
+      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getDirSeparator());
     }
 
     /// <summary>
@@ -196,7 +198,7 @@ namespace SharpPhysFS
     /// <returns>An enumeration of supported archive types</returns>
     public IEnumerable<ArchiveInfo> SupportedArchiveTypes()
     {
-      IntPtr archives = interop.PHYSFS_supportedArchiveTypes();
+      IntPtr archives = Interop.PHYSFS_supportedArchiveTypes();
       IntPtr i = archives;
       for (i = archives; Marshal.ReadIntPtr(i) != IntPtr.Zero; i = IntPtr.Add(i, IntPtr.Size))
       {
@@ -231,7 +233,7 @@ namespace SharpPhysFS
     /// <param name="permit">true to permit symlinks, false to deny linking.</param>
     public void PermitSymbolicLinks(bool permit)
     {
-      interop.PHYSFS_permitSymbolicLinks(permit ? 1 : 0);
+      Interop.PHYSFS_permitSymbolicLinks(permit ? 1 : 0);
     }
 
     /// <summary>
@@ -268,7 +270,7 @@ namespace SharpPhysFS
     /// <returns></returns>
     public string GetBaseDir()
     {
-      return Marshal.PtrToStringAnsi(interop.PHYSFS_getBaseDir());
+      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getBaseDir());
     }
 
     /// <summary>
@@ -286,7 +288,7 @@ namespace SharpPhysFS
     /// <returns>String of user dir in platform-dependent notation.</returns>
     public string GetUserDir()
     {
-      return Marshal.PtrToStringAnsi(interop.PHYSFS_getUserDir());
+      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getUserDir());
     }
 
     /// <summary>
@@ -298,7 +300,7 @@ namespace SharpPhysFS
     /// <returns>String of write dir in platform-dependent notation, OR null IF NO WRITE PATH IS CURRENTLY SET</returns>
     public string GetWriteDir()
     {
-      return Marshal.PtrToStringAnsi(interop.PHYSFS_getWriteDir());
+      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getWriteDir());
     }
 
     /// <summary>
@@ -316,7 +318,7 @@ namespace SharpPhysFS
     /// </param>
     public void SetWriteDir(string path)
     {
-      int err = interop.PHYSFS_setWriteDir(path);
+      int err = Interop.PHYSFS_setWriteDir(path);
       ThrowException(err);
     }
 
@@ -328,7 +330,7 @@ namespace SharpPhysFS
     [Obsolete("AddToSearchPath is deprecated, please use Mount instead")]
     public void AddToSearchPath(string newDir, bool appendToPath)
     {
-      int err = interop.PHYSFS_addToSearchPath(newDir, appendToPath ? 1 : 0);
+      int err = Interop.PHYSFS_addToSearchPath(newDir, appendToPath ? 1 : 0);
       ThrowException(err);
     }
 
@@ -344,7 +346,7 @@ namespace SharpPhysFS
     /// <param name="oldDir">	dir/archive to remove.</param>
     public void RemoveFromSearchPath(string oldDir)
     {
-      int err = interop.PHYSFS_removeFromSearchPath(oldDir);
+      int err = Interop.PHYSFS_removeFromSearchPath(oldDir);
       ThrowException(err);
     }
 
@@ -414,7 +416,7 @@ namespace SharpPhysFS
     /// <param name="archivesFirst">True to prepend the archives to the search path. False to append them. Ignored if !<paramref name="archiveExt"/>.</param>
     public void SetSaneConfig(string organization, string appName, string archiveExt, bool includeCdRoms, bool archivesFirst)
     {
-      int err = interop.PHYSFS_setSaneConfig(organization, appName, archiveExt, includeCdRoms ? 1 : 0, archivesFirst ? 1 : 0);
+      int err = Interop.PHYSFS_setSaneConfig(organization, appName, archiveExt, includeCdRoms ? 1 : 0, archivesFirst ? 1 : 0);
       ThrowException(err);
     }
 
@@ -434,7 +436,7 @@ namespace SharpPhysFS
     /// <param name="dirName">New dir to create.</param>
     public void Mkdir(string dirName)
     {
-      int err = interop.PHYSFS_mkdir(dirName);
+      int err = Interop.PHYSFS_mkdir(dirName);
       ThrowException(err);
     }
 
@@ -461,7 +463,7 @@ namespace SharpPhysFS
     /// <param name="filename">Filename to delete.</param>
     public void Delete(string filename)
     {
-      int err = interop.PHYSFS_delete(filename);
+      int err = Interop.PHYSFS_delete(filename);
       ThrowException(err);
     }
 
@@ -485,7 +487,7 @@ namespace SharpPhysFS
     /// <returns>String of element of search path containing the the file in question. null if not found.</returns>
     public string GetRealDir(string filename)
     {
-      return Marshal.PtrToStringAnsi(interop.PHYSFS_getRealDir(filename));
+      return Marshal.PtrToStringAnsi(Interop.PHYSFS_getRealDir(filename));
     }
 
     /// <summary>
@@ -500,7 +502,7 @@ namespace SharpPhysFS
     /// <returns>True if filename exists. false otherwise.</returns>
     public bool Exists(string fname)
     {
-      return interop.PHYSFS_exists(fname) != 0;
+      return Interop.PHYSFS_exists(fname) != 0;
     }
 
     /// <summary>
@@ -512,7 +514,7 @@ namespace SharpPhysFS
     /// <returns>True if filename exists and is a directory. False otherwise.</returns>
     public bool IsDirectory(string fname)
     {
-      return interop.PHYSFS_isDirectory(fname) != 0;
+      return Interop.PHYSFS_isDirectory(fname) != 0;
     }
 
     /// <summary>
@@ -524,7 +526,7 @@ namespace SharpPhysFS
     /// <returns>True if filename exists and is a symlink. False otherwise.</returns>
     public bool IsSymbolicLink(string fname)
     {
-      return interop.PHYSFS_isSymbolicLink(fname) != 0;
+      return Interop.PHYSFS_isSymbolicLink(fname) != 0;
     }
 
     /// <summary>
@@ -539,7 +541,7 @@ namespace SharpPhysFS
     /// <returns>Last modified time of the file. -1 if it can't be determined.</returns>
     public long GetLastModTime(string fname)
     {
-      return interop.PHYSFS_getLastModTime(fname);
+      return Interop.PHYSFS_getLastModTime(fname);
     }
 
     /// <summary>
@@ -552,7 +554,7 @@ namespace SharpPhysFS
     /// <returns>True if library is initialized, false if library is not.</returns>
     public bool IsInit()
     {
-      return interop.PHYSFS_isInit() != 0;
+      return Interop.PHYSFS_isInit() != 0;
     }
 
     /// <summary>
@@ -565,12 +567,12 @@ namespace SharpPhysFS
     /// <returns>True if symlinks are permitted, false if not.</returns>
     public bool SymbolicLinksPermitted()
     {
-      return interop.PHYSFS_symbolicLinksPermitted() != 0;
+      return Interop.PHYSFS_symbolicLinksPermitted() != 0;
     }
 
     public void SetAllocator(Allocator allocator)
     {
-      int err = interop.PHYSFS_setAllocator(allocator);
+      int err = Interop.PHYSFS_setAllocator(allocator);
       ThrowException(err);
     }
 
@@ -588,7 +590,7 @@ namespace SharpPhysFS
     /// <returns>String of mount point if added to path</returns>
     public string GetMountPoint(string dir)
     {
-      var s = Marshal.PtrToStringAnsi(interop.PHYSFS_getMountPoint(dir));
+      var s = Marshal.PtrToStringAnsi(Interop.PHYSFS_getMountPoint(dir));
       if(s == null)
       {
         throw new PhysFSException(this);
@@ -608,7 +610,7 @@ namespace SharpPhysFS
     void GetCdRomDirsCallback(StringCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
-      interop.PHYSFS_getCdRomDirsCallback(c, GCHandle.ToIntPtr(objHandle));
+      Interop.PHYSFS_getCdRomDirsCallback(c, GCHandle.ToIntPtr(objHandle));
       objHandle.Free();
     }
 
@@ -633,13 +635,13 @@ namespace SharpPhysFS
     /// <param name="c">Callback function to notify about detected drives.</param>
     public void GetCdRomDirsCallback(Action<string> c)
     {
-      interop.PHYSFS_getCdRomDirsCallback((p, s) => c(s), IntPtr.Zero);
+      Interop.PHYSFS_getCdRomDirsCallback((p, s) => c(s), IntPtr.Zero);
     }
     
     void GetSearchPathCallback(StringCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
-      interop.PHYSFS_getSearchPathCallback(c, GCHandle.ToIntPtr(objHandle));
+      Interop.PHYSFS_getSearchPathCallback(c, GCHandle.ToIntPtr(objHandle));
       objHandle.Free();
     }
 
@@ -664,13 +666,13 @@ namespace SharpPhysFS
     /// <param name="c">Callback function to notify about search path elements.</param>
     public void GetSearchPathCallback(Action<string> c)
     {
-      interop.PHYSFS_getSearchPathCallback((p, s) => c(s), IntPtr.Zero);
+      Interop.PHYSFS_getSearchPathCallback((p, s) => c(s), IntPtr.Zero);
     }
     
     void EnumerateFilesCallback(string dir, EnumFilesCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
-      interop.PHYSFS_enumerateFilesCallback(dir, c, GCHandle.ToIntPtr(objHandle));
+      Interop.PHYSFS_enumerateFilesCallback(dir, c, GCHandle.ToIntPtr(objHandle));
       objHandle.Free();
     }
 
@@ -701,7 +703,7 @@ namespace SharpPhysFS
     /// <param name="c">Callback function to notify about search path elements.</param>
     public void EnumerateFilesCallback(string dir, Action<string, string> c)
     {
-      interop.PHYSFS_enumerateFilesCallback(dir, (data, origdir, fname) => c(origdir, fname), IntPtr.Zero);
+      Interop.PHYSFS_enumerateFilesCallback(dir, (data, origdir, fname) => c(origdir, fname), IntPtr.Zero);
     }
 
     public PhysFSStream OpenAppend(string file)
@@ -731,7 +733,6 @@ namespace SharpPhysFS
         if (disposing)
         {
           Deinit();
-          interop.Dispose();
         }
 
         disposed = true;

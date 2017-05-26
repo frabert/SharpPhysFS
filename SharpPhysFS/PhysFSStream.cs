@@ -49,7 +49,7 @@ namespace SharpPhysFS
     {
       get
       {
-        return PhysFS.LowLevel.FileLength(handle, physFS);
+        return PhysFS.LowLevel.FileLength(handle);
       }
     }
 
@@ -57,7 +57,7 @@ namespace SharpPhysFS
     {
       get
       {
-        return PhysFS.LowLevel.Tell(handle, physFS);
+        return PhysFS.LowLevel.Tell(handle);
       }
       set
       {
@@ -67,7 +67,7 @@ namespace SharpPhysFS
 
     public long Read(byte[] buffer, uint offset, uint count)
     {
-      return PhysFS.LowLevel.Read(handle, buffer, 1, count, physFS);
+      return PhysFS.LowLevel.Read(handle, buffer, 1, count);
     }
 
     public override int Read(byte[] buffer, int offset, int count)
@@ -81,9 +81,9 @@ namespace SharpPhysFS
       if (origin == SeekOrigin.Begin)
         pos = 0;
       else if (origin == SeekOrigin.Current)
-        pos = PhysFS.LowLevel.Tell(handle, physFS);
+        pos = PhysFS.LowLevel.Tell(handle);
       else
-        pos = PhysFS.LowLevel.FileLength(handle, physFS);
+        pos = PhysFS.LowLevel.FileLength(handle);
 
       PhysFS.LowLevel.Seek(handle, (ulong)(pos + offset), physFS);
       return pos + offset;
@@ -91,7 +91,7 @@ namespace SharpPhysFS
 
     public long Write(byte[] buffer, uint offset, uint count)
     {
-      return PhysFS.LowLevel.Write(handle, buffer, 1, count, physFS);
+      return PhysFS.LowLevel.Write(handle, buffer, 1, count);
     }
 
     public override void Write(byte[] buffer, int offset, int count)
