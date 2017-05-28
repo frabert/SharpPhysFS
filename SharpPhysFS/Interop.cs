@@ -44,7 +44,7 @@ namespace SharpPhysFS
   }
 
   [StructLayout(LayoutKind.Sequential)]
-  public class Allocator
+  public struct Allocator
   {
     [MarshalAs(UnmanagedType.FunctionPtr)]
     public InitDelegate Init;

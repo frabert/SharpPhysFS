@@ -29,14 +29,8 @@ You should also include compiled shared library of physfs alongside your binary 
 
 ````c#
 using(var pfs = new PhysFS("")) // This ensures correct initialization and deinitialization
-using(var stream = pfs.OpenRead("/helloworld.txt"))
+using(var reader = new StreamReader(pfs.OpenRead("/helloworld.txt")))
 {
-  var reader = new StreamReader(stream);
   var contents = reader.ReadToEnd();
 }
 ````
-
-## Support on Beerpay
-Hey dude! Help me out for a couple of :beers:!
-
-[![Beerpay](https://beerpay.io/frabert/SharpPhysFS/badge.svg?style=beer-square)](https://beerpay.io/frabert/SharpPhysFS)  [![Beerpay](https://beerpay.io/frabert/SharpPhysFS/make-wish.svg?style=flat-square)](https://beerpay.io/frabert/SharpPhysFS?focus=wish)

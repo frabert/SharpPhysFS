@@ -314,6 +314,17 @@ namespace Test
       return true;
     }
 
+    static bool GetMountPoint(string[] args)
+    {
+      if (args.Length < 1)
+      {
+        Console.WriteLine("Usage: getmountpoint <file>");
+        return false;
+      }
+      Console.WriteLine(physFS.GetMountPoint(args[0]));
+      return true;
+    }
+
     #endregion
 
     static void Main(string[] args)
@@ -358,6 +369,7 @@ namespace Test
       commands.Add("issymlink", IsSymlink);
       commands.Add("cat", Cat);
       commands.Add("filelength", FileLength);
+      commands.Add("getmountpoint", GetMountPoint);
 
       while (true)
       {

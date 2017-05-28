@@ -14,7 +14,7 @@ namespace SharpPhysFS
   /// <summary>
   /// Main class for SharpPhysFS
   /// </summary>
-  public partial class PhysFS
+  public sealed partial class PhysFS
     : IDisposable
   {
     public class PhysFSException : Exception
@@ -25,11 +25,6 @@ namespace SharpPhysFS
     }
 
     public PhysFS(string argv0)
-    {
-      Init(argv0);
-    }
-
-    public PhysFS(string argv0, string libname)
     {
       Init(argv0);
     }
@@ -709,39 +704,49 @@ namespace SharpPhysFS
     public PhysFSStream OpenAppend(string file)
     {
       var handle = LowLevel.OpenAppend(file, this);
+      if (handle == IntPtr.Zero) throw new PhysFSException(this);
       return new PhysFSStream(this, handle, false);
     }
 
     public PhysFSStream OpenRead(string file)
     {
       var handle = LowLevel.OpenRead(file, this);
+      if (handle == IntPtr.Zero) throw new PhysFSException(this);
       return new PhysFSStream(this, handle, true);
     }
 
     public PhysFSStream OpenWrite(string file)
     {
       var handle = LowLevel.OpenWrite(file, this);
+      if (handle == IntPtr.Zero) throw new PhysFSException(this);
       return new PhysFSStream(this, handle, false);
     }
 
-    bool disposed = false;
+    #region IDisposable Support
+    private bool disposedValue = false; // To detect redundant calls
 
-    protected virtual void Dispose(bool disposing)
+    void Dispose(bool disposing)
     {
-      if (!disposed)
+      if (!disposedValue)
       {
         if (disposing)
         {
           Deinit();
         }
-
-        disposed = true;
+        disposedValue = true;
       }
     }
-
+    
+    ~PhysFS() {
+      Dispose(false);
+    }
+    
     public void Dispose()
     {
+      // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
       Dispose(true);
+      GC.SuppressFinalize(this);
     }
+    #endregion
   }
 }

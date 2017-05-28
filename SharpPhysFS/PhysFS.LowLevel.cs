@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace SharpPhysFS
 {
-  public partial class PhysFS
+  public sealed partial class PhysFS
   {
     internal static class LowLevel
     {
@@ -36,15 +37,18 @@ namespace SharpPhysFS
         physFS.ThrowException(err);
       }
 
-      public static long Read(IntPtr file, byte[] buffer, uint objSize, uint objCount)
+      public static long Read(IntPtr file, byte[] buffer, uint objSize, uint objCount, int offset)
       {
-        unsafe
+        if (buffer.Length < (objSize * objCount) + offset)
         {
-          fixed (void* ptr = buffer)
-          {
-            return Interop.PHYSFS_read(file, (IntPtr)ptr, objSize, objCount);
-          }
+          throw new InvalidOperationException("Buffer too small");
         }
+
+        var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+        long ret = Interop.PHYSFS_read(file, IntPtr.Add(handle.AddrOfPinnedObject(), offset), 1, objCount);
+        handle.Free();
+
+        return ret;
       }
 
       public static long Write(IntPtr file, byte[] buffer, uint objSize, uint objCount)

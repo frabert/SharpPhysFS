@@ -65,14 +65,14 @@ namespace SharpPhysFS
       }
     }
 
-    public long Read(byte[] buffer, uint offset, uint count)
+    public long Read(byte[] buffer, int offset, uint count)
     {
-      return PhysFS.LowLevel.Read(handle, buffer, 1, count);
+      return PhysFS.LowLevel.Read(handle, buffer, 1, count, offset);
     }
 
     public override int Read(byte[] buffer, int offset, int count)
     {
-      return (int)Read(buffer, (uint)offset, (uint)count);
+      return (int)Read(buffer, offset, (uint)count);
     }
 
     public override long Seek(long offset, SeekOrigin origin)

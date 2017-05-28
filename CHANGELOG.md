@@ -14,3 +14,7 @@
 
 ## Version 1.0.0
 - DLL configuration on platforms other than Windows is done via app.config now, as per http://www.mono-project.com/docs/advanced/pinvoke/dllmap/
+- Fixed a bug in which trying to open a nonexistant bug would create an invalid handle without throwing exceptions
+- Fixed a bug which would ignore the offset parameter in stream readings
+- Added automated testing
+- Various deprecated methods are now private only, they have been substituted with safer counterparts
