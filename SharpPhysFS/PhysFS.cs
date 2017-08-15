@@ -586,7 +586,7 @@ namespace SharpPhysFS
     public string GetMountPoint(string dir)
     {
       var s = Marshal.PtrToStringAnsi(Interop.PHYSFS_getMountPoint(dir));
-      if(s == null)
+      if (s == null)
       {
         throw new PhysFSException(this);
       }
@@ -601,7 +601,7 @@ namespace SharpPhysFS
         c(obj, s);
       };
     }
-    
+
     void GetCdRomDirsCallback(StringCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
@@ -632,7 +632,7 @@ namespace SharpPhysFS
     {
       Interop.PHYSFS_getCdRomDirsCallback((p, s) => c(s), IntPtr.Zero);
     }
-    
+
     void GetSearchPathCallback(StringCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
@@ -663,7 +663,7 @@ namespace SharpPhysFS
     {
       Interop.PHYSFS_getSearchPathCallback((p, s) => c(s), IntPtr.Zero);
     }
-    
+
     void EnumerateFilesCallback(string dir, EnumFilesCallback c, object data)
     {
       GCHandle objHandle = GCHandle.Alloc(data);
@@ -722,6 +722,27 @@ namespace SharpPhysFS
       return new PhysFSStream(this, handle, false);
     }
 
+    /// <summary>
+    /// Get various information about a directory or a file.
+    /// </summary>
+    /// <para>
+    /// Obtain various information about a file or directory from the meta data.
+    /// </para>
+    /// <para>
+    /// This function will never follow symbolic links.
+    /// If you haven't enabled symlinks with <see cref="PermitSymbolicLinks(bool)"/>,
+    /// stat'ing a symlink will be treated like stat'ing a non-existant file.
+    /// If symlinks are enabled, stat'ing a symlink will give you information
+    /// on the link itself and not what it points to.
+    /// </para>
+    /// <param name="file">Filename to check, in platform-independent notation</param>
+    /// <returns>The file info data. On failure, throws an exception</returns>
+    public FileStats GetFileStats(string file)
+    {
+      FileStats stats = new FileStats();
+      ThrowException(Interop.PHYSFS_stat(file, ref stats));
+      return stats;
+    }
     #region IDisposable Support
     private bool disposedValue = false; // To detect redundant calls
 
@@ -736,11 +757,12 @@ namespace SharpPhysFS
         disposedValue = true;
       }
     }
-    
-    ~PhysFS() {
+
+    ~PhysFS()
+    {
       Dispose(false);
     }
-    
+
     public void Dispose()
     {
       // Do not change this code. Put cleanup code in Dispose(bool disposing) above.

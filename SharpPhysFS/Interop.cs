@@ -62,6 +62,66 @@ namespace SharpPhysFS
     public FreeDelegate Free;
   }
 
+  /// <summary>
+  /// Type of a file
+  /// </summary>
+  public enum FileType : int
+  {
+    /// <summary>
+    /// A normal file
+    /// </summary>
+    Regular = 0,
+
+    /// <summary>
+    /// A directory
+    /// </summary>
+    Directory,
+
+    /// <summary>
+    /// A symlink
+    /// </summary>
+    Symlink,
+
+    /// <summary>
+    /// Something completely different, like a device
+    /// </summary>
+    Other
+  }
+
+  [StructLayout(LayoutKind.Sequential)]
+  public struct FileStats
+  {
+    /// <summary>
+    /// Size in bytes, -1 for non-files and unknown
+    /// </summary>
+    public long FileSize;
+
+    /// <summary>
+    /// Last modification time
+    /// </summary>
+    public long ModificationTime;
+
+    /// <summary>
+    /// Like <see cref="ModificationTime"/>, but for file creation time
+    /// </summary>
+    public long CreationTime;
+
+    /// <summary>
+    /// Like <see cref="ModificationTime"/>, but for file access time
+    /// </summary>
+    public long AccessTime;
+
+    /// <summary>
+    /// Type of the file
+    /// </summary>
+    public FileType FileType;
+
+    /// <summary>
+    /// Non-zero if read only, zero if writable
+    /// </summary>
+    public int ReadOnly;
+  }
+
   static class Interop
   {
     [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -155,7 +215,13 @@ namespace SharpPhysFS
     public static extern long PHYSFS_read(IntPtr ptr1, IntPtr ptr2, uint i1, uint i2);
 
     [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern long PHYSFS_readBytes(IntPtr ptr1, IntPtr ptr2, ulong l);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
     public static extern long PHYSFS_write(IntPtr ptr1, IntPtr ptr2, uint i1, uint i2);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern long PHYSFS_writeBytes(IntPtr ptr1, IntPtr ptr2, ulong l);
 
     [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
     public static extern int PHYSFS_eof(IntPtr ptr);
@@ -198,5 +264,17 @@ namespace SharpPhysFS
 
     [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
     public static extern void PHYSFS_enumerateFilesCallback(string s, EnumFilesCallback c, IntPtr p);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_stat(string s, ref FileStats stat);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_mountMemory(IntPtr p1, ulong l, [MarshalAs(UnmanagedType.FunctionPtr)] Action<IntPtr> del, string fname, string mountPoint, int appendToPath);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern int PHYSFS_mountHandle(IntPtr p1, string fname, string mountPoint, int appendToPath);
+
+    [DllImport("physfs.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+    public static extern string PHYSFS_getPrefDir(string org, string app);
   }
 }
